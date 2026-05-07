@@ -4,6 +4,17 @@
       background: #000; font-family: 'Arial', sans-serif;
       overflow: hidden; touch-action: none; user-select: none;
     }
+
+    .font-bold { font-weight: 700; }
+    .text-white { color: #ffffff; }
+    .text-yellow-400 { color: #facc15; }
+    .text-lg { font-size: 1.125rem; }
+    .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+    .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+    .text-5xl { font-size: 3rem; line-height: 1; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mt-2 { margin-top: 0.5rem; }
     
     .game-container {
       width: 100vw; height: 100vh;
@@ -161,10 +172,6 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 2px solid #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
     .roadmap-btn:active { transform: scale(0.95); }
-
-    .leaderboard-btn {
-      background: linear-gradient(to bottom, #FF8C00, #FF4500);
-    }
 
     .mp-mode-btn {
       background: linear-gradient(to bottom, #8a2be2, #4b0082);
@@ -349,63 +356,6 @@
       transform: translateY(-50%) scale(1.1); /* Maintain centering while scaling */
       border-color: #FFD700;
     }
-
-    /* --- LEADERBOARD STYLES --- */
-    #leaderboard-menu {
-      pointer-events: auto;
-      background: rgba(0, 0, 0, 0.95);
-      width: 100%; height: 100%;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
-    }
-
-    #multiplayer-leaderboard-menu {
-      pointer-events: auto;
-      background: rgba(0, 0, 0, 0.95);
-      width: 100%; height: 100%;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
-    }
-
-    #multiplayer-leaderboard-list {
-      width: 90%; max-width: 600px;
-      height: 50vh;
-      overflow-y: auto;
-      background: rgba(255, 255, 255, 0.1);
-      border: 2px solid #00BFFF;
-      border-radius: 10px;
-      padding: 10px;
-      margin-bottom: 20px;
-      color: #FFF;
-      font-family: 'Arial', sans-serif;
-    }
-    #leaderboard-list {
-      width: 90%; max-width: 600px;
-      height: 50vh;
-      overflow-y: auto;
-      background: rgba(255, 255, 255, 0.1);
-      border: 2px solid #FFD700;
-      border-radius: 10px;
-      padding: 10px;
-      margin-bottom: 20px;
-      color: #FFF;
-      font-family: 'Arial', sans-serif;
-    }
-    .leaderboard-title { text-shadow: 2px 2px 0 #000; }
-    .leaderboard-back-btn { position: relative; top: auto; left: auto; width: 200px; text-align: center; }
-    .lb-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    .lb-table th { text-align: left; border-bottom: 2px solid #FFD700; padding: 10px; color: #FFD700; position: sticky; top: 0; background: rgba(0,0,0,0.8); }
-    .lb-table td { border-bottom: 1px solid rgba(255,255,255,0.2); padding: 10px 5px; }
-    .lb-rank-1 { color: #FFD700; font-weight: bold; font-size: 16px; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
-    .lb-rank-2 { color: #C0C0C0; font-weight: bold; }
-    .lb-rank-3 { color: #CD7F32; font-weight: bold; }
-    .lb-name-small { font-size: 11px; color: #AAA; display: block; margin-top: 2px; }
 
     /* --- MOBILE RESPONSIVENESS --- */
     @media (max-width: 768px) {

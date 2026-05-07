@@ -358,11 +358,6 @@
     // NEW: Active Quiz Set for current battle
     let activeQuizSet = []; 
 
-    // --- INTEGRASI LEADERBOARD ---
-    const APPS_SCRIPT_API = "https://script.google.com/macros/s/AKfycbx8BhSuHxfiEUNxS8Ly4btDnE0jz7AJCxw_Dv0J8rEpDi8PIEzRumAOnfxeOnyf79Dn/exec";
-    const MP_LEADERBOARD_KEY = 'lsr_multiplayer_leaderboard_v1';
-    let scoreSubmitted = false;
-
     let mpConfig = {
       p1Gender: 'male',
       p2AlienIndex: 0
@@ -381,47 +376,6 @@
       feedbackColor: '#FFFFFF',
       resultText: ''
     };
-
-    function isAppsScriptApiConfigured() {
-      return APPS_SCRIPT_API && !APPS_SCRIPT_API.includes('GANTI_DENGAN_URL_WEB_APP_CODE_GS');
-    }
-
-    function submitScoreToCloud() {
-        if (!playerData.name || score === 0) return;
-        showFloatingText("MENGIRIM SKOR...", canvas.width/2, canvas.height/2 + 80, '#FFFF00');
-        if (!isAppsScriptApiConfigured()) {
-          showFloatingText("SET URL APPS SCRIPT", canvas.width/2, canvas.height/2 + 120, '#AAAAAA');
-          return;
-        }
-        const payload = { mode: 'singleplayer', name: playerData.name, province: playerData.province, score: score, rank: getRank(score) };
-        fetch(APPS_SCRIPT_API, { method: 'POST', body: JSON.stringify(payload) })
-        .then(response => response.json())
-        .then(data => { console.log("Score Saved:", data); showFloatingText("SKOR TERSIMPAN!", canvas.width/2, canvas.height/2 + 120, '#00FF00'); })
-        .catch(error => { console.error('Error saving score:', error); showFloatingText("OFFLINE MODE", canvas.width/2, canvas.height/2 + 120, '#AAAAAA'); });
-    }
-
-    function openLeaderboard() {
-        SoundManager.play('click'); document.getElementById('main-menu').style.display = 'none';
-        const lbMenu = document.getElementById('leaderboard-menu'); const lbList = document.getElementById('leaderboard-list');
-      lbMenu.style.display = 'flex';
-      if (!isAppsScriptApiConfigured()) {
-        lbList.innerHTML = '<p style="text-align:center; color:#FFCC00; padding-top:50px;">Setel APPS_SCRIPT_API dulu di app.js.</p>';
-        return;
-      }
-      lbList.innerHTML = '<p style="text-align:center; padding-top:50px;">Menghubungi Markas Pusat...</p>';
-      fetch(`${APPS_SCRIPT_API}?mode=singleplayer`).then(response => response.json()).then(json => {
-            if(json.result === 'success') {
-                let html = '<table class="lb-table"><thead><tr><th>#</th><th>NAMA</th><th>ASAL</th><th>SKOR</th></tr></thead><tbody>';
-                if (json.data.length === 0) { html += '<tr><td colspan="4" style="text-align:center; padding:20px;">Belum ada data Ranger.</td></tr>'; } 
-                else { json.data.forEach((row, index) => {
-                        let rankClass = ''; if (index === 0) rankClass = 'lb-rank-1'; else if (index === 1) rankClass = 'lb-rank-2'; else if (index === 2) rankClass = 'lb-rank-3';
-                        html += `<tr class="${rankClass}"><td style="text-align:center;">${index + 1}</td><td>${row.name} <span class="lb-name-small">${row.rank || ''}</span></td><td>${row.province}</td><td style="font-weight:bold; text-align:right;">${row.score.toLocaleString()}</td></tr>`;
-                    }); }
-                html += '</tbody></table>'; lbList.innerHTML = html;
-            } else { lbList.innerHTML = '<p style="text-align:center; color:red; padding-top:50px;">Gagal memuat data.</p>'; }
-        }).catch(err => { lbList.innerHTML = '<p style="text-align:center; color:#FF5555; padding-top:50px;">Koneksi Gagal.<br>Pastikan terhubung internet.</p>'; console.error(err); });
-    }
-    function closeLeaderboard() { SoundManager.play('click'); document.getElementById('leaderboard-menu').style.display = 'none'; document.getElementById('main-menu').style.display = 'flex'; }
 
     function openMultiplayerMenu() {
       SoundManager.play('click');
@@ -540,131 +494,6 @@
       gameState = GameState.MULTIPLAYER_BATTLE;
     }
 
-    function loadMultiplayerLeaderboard() {
-      try {
-        const raw = localStorage.getItem(MP_LEADERBOARD_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch (e) {
-        console.error(e);
-        return [];
-      }
-    }
-
-    function isMultiplayerApiConfigured() {
-      return isAppsScriptApiConfigured();
-    }
-
-    function saveMultiplayerMatchResult(winner, loser) {
-      const localRows = loadMultiplayerLeaderboard();
-      const p1 = mpBattle.players[0];
-      const p2 = mpBattle.players[1];
-      localRows.push({
-        winnerName: winner.name,
-        winnerProvince: winner.province,
-        loserName: loser.name,
-        loserProvince: loser.province,
-        playedAt: Date.now(),
-        players: [
-          { name: p1.name, province: p1.province, points: p1.points, rank: getMultiplayerRank(p1.points), win: winner.name === p1.name },
-          { name: p2.name, province: p2.province, points: p2.points, rank: getMultiplayerRank(p2.points), win: winner.name === p2.name }
-        ]
-      });
-      localStorage.setItem(MP_LEADERBOARD_KEY, JSON.stringify(localRows));
-
-      if (!isMultiplayerApiConfigured()) return;
-
-      const payload = {
-        mode: 'multiplayer',
-        winnerName: winner.name,
-        winnerProvince: winner.province,
-        loserName: loser.name,
-        loserProvince: loser.province,
-        winnerPoints: winner.points,
-        winnerRank: getMultiplayerRank(winner.points),
-        loserPoints: loser.points,
-        loserRank: getMultiplayerRank(loser.points)
-      };
-
-      fetch(APPS_SCRIPT_API, { method: 'POST', body: JSON.stringify(payload) })
-        .catch(err => console.error('Gagal kirim skor multiplayer ke cloud:', err));
-    }
-
-    function buildMultiplayerLeaderboardHtml(ranked) {
-      let html = '<table class="lb-table"><thead><tr><th>#</th><th>NAMA</th><th>ASAL</th><th>POIN</th><th>RANK</th><th>MENANG</th></tr></thead><tbody>';
-      if (ranked.length === 0) {
-        html += '<tr><td colspan="6" style="text-align:center; padding:20px;">Belum ada data multiplayer.</td></tr>';
-      } else {
-        ranked.forEach((row, index) => {
-          html += `<tr><td style="text-align:center;">${index + 1}</td><td>${row.name}</td><td>${row.province}</td><td style="text-align:right; font-weight:bold;">${row.points || 0}</td><td>${row.rank || getMultiplayerRank(row.points || 0)}</td><td style="text-align:right; font-weight:bold;">${row.wins || 0}</td></tr>`;
-        });
-      }
-      html += '</tbody></table>';
-      return html;
-    }
-
-    function buildLocalMultiplayerRanking() {
-      const rows = loadMultiplayerLeaderboard();
-      const statsMap = {};
-      rows.forEach(r => {
-        if (Array.isArray(r.players)) {
-          r.players.forEach(p => {
-            const key = `${p.name}||${p.province}`;
-            if (!statsMap[key]) {
-              statsMap[key] = { name: p.name, province: p.province, points: 0, wins: 0 };
-            }
-            statsMap[key].points = Math.max(statsMap[key].points, Number(p.points || 0));
-            if (p.win) statsMap[key].wins += 1;
-          });
-        } else {
-          const key = `${r.winnerName}||${r.winnerProvince}`;
-          if (!statsMap[key]) {
-            statsMap[key] = { name: r.winnerName, province: r.winnerProvince, points: 0, wins: 0 };
-          }
-          statsMap[key].wins += 1;
-        }
-      });
-      const rowsOut = Object.values(statsMap).map(row => ({
-        ...row,
-        rank: getMultiplayerRank(row.points || 0)
-      }));
-      return rowsOut.sort((a, b) => (b.points - a.points) || (b.wins - a.wins));
-    }
-
-    async function openMultiplayerLeaderboard() {
-      SoundManager.play('click');
-      document.getElementById('main-menu').style.display = 'none';
-      document.getElementById('multiplayer-menu').style.display = 'none';
-
-      const container = document.getElementById('multiplayer-leaderboard-list');
-      container.innerHTML = '<p style="text-align:center; padding-top:50px;">Memuat leaderboard multiplayer...</p>';
-
-      if (isMultiplayerApiConfigured()) {
-        try {
-          const res = await fetch(`${APPS_SCRIPT_API}?mode=multiplayer`);
-          const json = await res.json();
-          if (json.result === 'success' && Array.isArray(json.data)) {
-            container.innerHTML = buildMultiplayerLeaderboardHtml(json.data);
-          } else {
-            container.innerHTML = buildMultiplayerLeaderboardHtml(buildLocalMultiplayerRanking());
-          }
-        } catch (err) {
-          console.error('Gagal memuat leaderboard multiplayer cloud:', err);
-          container.innerHTML = buildMultiplayerLeaderboardHtml(buildLocalMultiplayerRanking());
-        }
-      } else {
-        container.innerHTML = buildMultiplayerLeaderboardHtml(buildLocalMultiplayerRanking());
-      }
-
-      document.getElementById('multiplayer-leaderboard-menu').style.display = 'flex';
-    }
-
-    function closeMultiplayerLeaderboard() {
-      SoundManager.play('click');
-      document.getElementById('multiplayer-leaderboard-menu').style.display = 'none';
-      document.getElementById('main-menu').style.display = 'flex';
-      gameState = GameState.MENU;
-    }
-
     function handleMultiplayerTouch(pos) {
       const isLeftSide = pos.x < canvas.width / 2;
       const attacker = isLeftSide ? 0 : 1;
@@ -707,9 +536,7 @@
               mpBattle.players[0].points = calculateMultiplayerPoints(mpBattle.players[0]);
               mpBattle.players[1].points = calculateMultiplayerPoints(mpBattle.players[1]);
               const winner = mpBattle.players[attacker];
-              const loser = mpBattle.players[defender];
               mpBattle.resultText = `${winner.name} MENANG! (${winner.points} poin, ${getMultiplayerRank(winner.points)})`;
-              saveMultiplayerMatchResult(winner, loser);
               gameState = GameState.MULTIPLAYER_RESULT;
               return;
             }
@@ -1029,15 +856,12 @@
     function resetGame() { 
         currentPlanetIndex=0; playerHP=100; score=0; isPaused=false; shipLevel=0; 
         stats={asteroidsDestroyed:0, accuracy:0, quizCorrect:0, quizTotal:0}; 
-        scoreSubmitted = false; 
         gameState=GameState.START; 
         SoundManager.stopBGM(); // Stop music when returning to menu
       SoundManager.currentTheme = null;
         document.getElementById('main-menu').style.display='none'; 
         document.getElementById('char-select-menu').style.display='none'; 
-        document.getElementById('leaderboard-menu').style.display='none'; 
         document.getElementById('multiplayer-menu').style.display='none'; 
-        document.getElementById('multiplayer-leaderboard-menu').style.display='none'; 
     }
     
     // --- RESTORED MISSING GAME LOGIC FUNCTIONS ---
@@ -1454,8 +1278,6 @@
       
       ctx.fillStyle = '#FFF'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center'; 
       ctx.fillText("KEMBALI KE MENU", canvas.width/2, btnY + 38);
-
-      if (!scoreSubmitted && score > 0) { submitScoreToCloud(); scoreSubmitted = true; }
     }
 
     let lastTime = 0;

@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Little Space Ranger</title>
-  <script src="/_sdk/element_sdk.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./styles.css">
  </head>
  <body>
@@ -35,7 +33,6 @@
                  <button class="start-btn mt-2" onclick="submitMainMenu()">MULAI MISI</button>
                  <button class="roadmap-btn mp-mode-btn" onclick="openMultiplayerMenu()">MODE MULTIPLAYER</button>
                  <button class="roadmap-btn" onclick="showMenuRoadmap()">PETA MISI</button>
-                 <button class="roadmap-btn leaderboard-btn" onclick="openLeaderboard()">PAPAN SKOR</button>
              </div>
              
              <div class="menu-right">
@@ -97,7 +94,6 @@
           </div>
           <div class="mp-actions">
             <button class="start-btn" onclick="startMultiplayerGame()">MULAI PERTARUNGAN</button>
-            <button class="roadmap-btn leaderboard-btn" onclick="openMultiplayerLeaderboard()">LEADERBOARD MULTIPLAYER</button>
           </div>
          </div>
 
@@ -117,24 +113,6 @@
                 </div>
             </div>
          </div>
-
-         <!-- LEADERBOARD MENU -->
-        <div id="leaderboard-menu">
-          <h2 class="text-3xl font-bold text-yellow-400 mb-4 leaderboard-title">RANGER TERBAIK</h2>
-            <div id="leaderboard-list">
-                Loading data...
-            </div>
-          <button class="back-btn leaderboard-back-btn" onclick="closeLeaderboard()">KEMBALI</button>
-         </div>
-
-           <!-- MULTIPLAYER LEADERBOARD MENU -->
-           <div id="multiplayer-leaderboard-menu">
-            <h2 class="text-3xl font-bold text-yellow-400 mb-4 leaderboard-title">RANK MULTIPLAYER</h2>
-              <div id="multiplayer-leaderboard-list">
-                  Loading data...
-              </div>
-            <button class="back-btn leaderboard-back-btn" onclick="closeMultiplayerLeaderboard()">KEMBALI</button>
-           </div>
        </div>
 
        <!-- TOMBOL FULLSCREEN -->
