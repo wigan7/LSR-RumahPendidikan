@@ -24,12 +24,6 @@
                    <label>NAMA RANGER:</label>
                    <input type="text" id="player-name" placeholder="Ketik namamu..." maxlength="15">
                  </div>
-                 <div class="input-group">
-                   <label>DAERAH ASAL:</label>
-                   <select id="player-province">
-                     <option value="" disabled selected>-- Pilih Provinsi --</option>
-                   </select>
-                 </div>
                  <button class="start-btn mt-2" onclick="submitMainMenu()">MULAI MISI</button>
                  <button class="roadmap-btn mp-mode-btn" onclick="openMultiplayerMenu()">MODE MULTIPLAYER</button>
                  <button class="roadmap-btn" onclick="showMenuRoadmap()">PETA MISI</button>
@@ -56,12 +50,6 @@
                 <label>NAMA PLAYER 1:</label>
                 <input type="text" id="mp-p1-name" placeholder="Nama Astronot" maxlength="15">
               </div>
-              <div class="input-group">
-                <label>ASAL PROVINSI:</label>
-                <select id="mp-p1-province">
-                  <option value="" disabled selected>-- Pilih Provinsi --</option>
-                </select>
-              </div>
               <div class="mp-char-row">
                 <button id="mp-p1-male" class="mp-char-btn mp-char-card active" onclick="chooseMpP1Character('male')">
                   <img src="./assets/images/char-select-male.png" alt="Astronot Laki-laki">
@@ -78,12 +66,6 @@
               <div class="input-group">
                 <label>NAMA PLAYER 2:</label>
                 <input type="text" id="mp-p2-name" placeholder="Nama Alien" maxlength="15">
-              </div>
-              <div class="input-group">
-                <label>ASAL PROVINSI:</label>
-                <select id="mp-p2-province">
-                  <option value="" disabled selected>-- Pilih Provinsi --</option>
-                </select>
               </div>
               <div class="mp-alien-picker">
                 <button id="mp-a1" class="mp-alien-card active" onclick="chooseMpP2Alien(0)"><img src="./assets/images/alien-1.png" alt="Alien 1"></button>
@@ -115,9 +97,30 @@
          </div>
        </div>
 
-       <!-- TOMBOL FULLSCREEN -->
-      <button id="music-toggle-btn" onclick="toggleMusic()" title="Matikan Musik">MUSIK ON</button>
-      <button id="fullscreen-btn" onclick="toggleFullScreen()" title="Layar Penuh">FS</button>
+       <div id="in-game-notification" aria-live="polite"></div>
+
+       <!-- TOMBOL AUDIO -->
+      <div id="audio-controls" aria-label="Kontrol audio">
+        <button id="audio-menu-btn" onclick="toggleAudioPopup()" title="Buka pengaturan audio" aria-label="Buka pengaturan audio">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3 9h4l5-4v14l-5-4H3z"></path>
+            <path d="M15 9c1.7 1.2 1.7 4.8 0 6" fill="none" stroke-width="2" stroke-linecap="round"></path>
+            <path d="M18 7c3 2.2 3 7.8 0 10" fill="none" stroke-width="2" stroke-linecap="round"></path>
+          </svg>
+        </button>
+        <div id="audio-popup" aria-label="Pilihan audio">
+          <button id="music-toggle-btn" onclick="toggleMusic()" title="Matikan musik latar" aria-label="Toggle musik latar">
+            <span class="note-icon" aria-hidden="true">♪</span>
+          </button>
+          <button id="sfx-toggle-btn" onclick="toggleSfx()" title="Matikan sound effect" aria-label="Toggle sound effect">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 9h4l5-4v14l-5-4H3z"></path>
+              <path d="M15.5 10.5l5 5" fill="none" stroke-width="2" stroke-linecap="round"></path>
+              <path d="M20.5 10.5l-5 5" fill="none" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
    </div>
   </div>
 

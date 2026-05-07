@@ -1,24 +1,10 @@
-﻿// --- FULLSCREEN LOGIC ---
-    function toggleFullScreen() {
-      var doc = window.document;
-      var docEl = doc.documentElement;
-      var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-      var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-      if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-        if (requestFullScreen) {
-            try { var promise = requestFullScreen.call(docEl); if (promise) promise.catch(e => console.warn(e)); } catch (e) { console.warn(e); }
-        } 
-      } else {
-        if (cancelFullScreen) { try { cancelFullScreen.call(doc); } catch (e) { console.warn(e); } }
-      }
-    }
-
-    // --- SOUND MANAGER (Enhanced with BGM & Victory) ---
+﻿    // --- SOUND MANAGER (Enhanced with BGM & Victory) ---
     const SoundManager = {
         ctx: null,
         bgmNodes: [],
         bgmTimer: null,
       musicEnabled: true,
+      sfxEnabled: true,
       currentTheme: null,
         init: function() { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); },
         resume: function() { if (this.ctx && this.ctx.state === 'suspended') { this.ctx.resume(); } if (!this.ctx) this.init(); },
@@ -29,7 +15,12 @@
           return;
         }
         if (this.currentTheme === 'multiplayer') this.playMultiplayerTheme();
+        else if (this.currentTheme === 'space') this.playSpaceTravelTheme();
+        else if (this.currentTheme === 'battle') this.playBattleTheme();
         else if (this.currentTheme === 'adventure') this.playAdventureTheme();
+      },
+      setSfxEnabled: function(enabled) {
+        this.sfxEnabled = !!enabled;
       },
         stopBGM: function() {
             this.bgmNodes.forEach(node => { try { node.stop(); } catch(e){} });
@@ -116,6 +107,126 @@
             };
             playNextNote();
         },
+        playSpaceTravelTheme: function() {
+            this.currentTheme = 'space';
+            if (!this.ctx) return;
+            this.stopBGM();
+            if (!this.musicEnabled) return;
+
+            const drone = this.ctx.createOscillator();
+            const droneGain = this.ctx.createGain();
+            drone.type = 'sawtooth';
+            drone.frequency.value = 82.41;
+            drone.connect(droneGain);
+            droneGain.connect(this.ctx.destination);
+            droneGain.gain.value = 0.028;
+            drone.start();
+            this.bgmNodes.push(drone);
+
+            const pulseLfo = this.ctx.createOscillator();
+            const pulseLfoGain = this.ctx.createGain();
+            pulseLfo.type = 'square';
+            pulseLfo.frequency.value = 4.2;
+            pulseLfoGain.gain.value = 0.012;
+            pulseLfo.connect(pulseLfoGain);
+            pulseLfoGain.connect(droneGain.gain);
+            pulseLfo.start();
+            this.bgmNodes.push(pulseLfo);
+
+            const sequence = [
+              { f: 196.0, d: 0.09, g: 0.048 },
+              { f: 246.94, d: 0.09, g: 0.044 },
+              { f: 293.66, d: 0.11, g: 0.052 },
+              { f: 329.63, d: 0.12, g: 0.046 },
+              { f: 246.94, d: 0.09, g: 0.044 },
+              { f: 196.0, d: 0.12, g: 0.05 }
+            ];
+            let idx = 0;
+
+            const playNext = () => {
+              if (!this.musicEnabled || this.ctx.state === 'suspended') return;
+              const n = sequence[idx % sequence.length];
+              const now = this.ctx.currentTime;
+
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.value = n.f;
+              osc.connect(gain);
+              gain.connect(this.ctx.destination);
+
+              gain.gain.setValueAtTime(0.001, now);
+              gain.gain.linearRampToValueAtTime(n.g, now + 0.008);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + n.d);
+
+              osc.start(now);
+              osc.stop(now + n.d);
+
+              this.bgmTimer = setTimeout(playNext, n.d * 1000 + 65);
+              idx += 1;
+            };
+            playNext();
+        },
+        playBattleTheme: function() {
+            this.currentTheme = 'battle';
+            if (!this.ctx) return;
+            this.stopBGM();
+            if (!this.musicEnabled) return;
+
+            const bass = this.ctx.createOscillator();
+            const bassGain = this.ctx.createGain();
+            bass.type = 'square';
+            bass.frequency.value = 98.0;
+            bass.connect(bassGain);
+            bassGain.connect(this.ctx.destination);
+            bassGain.gain.value = 0.032;
+            bass.start();
+            this.bgmNodes.push(bass);
+
+            const bassLfo = this.ctx.createOscillator();
+            const bassLfoGain = this.ctx.createGain();
+            bassLfo.type = 'triangle';
+            bassLfo.frequency.value = 5.5;
+            bassLfoGain.gain.value = 0.014;
+            bassLfo.connect(bassLfoGain);
+            bassLfoGain.connect(bassGain.gain);
+            bassLfo.start();
+            this.bgmNodes.push(bassLfo);
+
+            const sequence = [
+              { f: 392.0, d: 0.11, g: 0.055 },
+              { f: 369.99, d: 0.11, g: 0.05 },
+              { f: 329.63, d: 0.1, g: 0.048 },
+              { f: 293.66, d: 0.13, g: 0.058 },
+              { f: 329.63, d: 0.1, g: 0.05 },
+              { f: 369.99, d: 0.13, g: 0.055 }
+            ];
+            let idx = 0;
+
+            const playHit = () => {
+              if (!this.musicEnabled || this.ctx.state === 'suspended') return;
+              const n = sequence[idx % sequence.length];
+              const now = this.ctx.currentTime;
+
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'sawtooth';
+              osc.frequency.value = n.f;
+              osc.connect(gain);
+              gain.connect(this.ctx.destination);
+
+              gain.gain.setValueAtTime(0.001, now);
+              gain.gain.linearRampToValueAtTime(n.g, now + 0.01);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + n.d);
+
+              osc.start(now);
+              osc.stop(now + n.d);
+
+              this.bgmTimer = setTimeout(playHit, n.d * 1000 + 55);
+              idx += 1;
+            };
+            playHit();
+        },
         playMultiplayerTheme: function() {
             this.currentTheme = 'multiplayer';
             if (!this.ctx) return;
@@ -201,6 +312,7 @@
         },
         play: function(type) {
             if (!this.ctx) return;
+          if (!this.sfxEnabled) return;
             const t = this.ctx.currentTime;
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
@@ -247,25 +359,19 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    let playerData = { name: "Ranger", province: "Indonesia", gender: "male" };
-    const provinces = ["Aceh", "Bali", "Banten", "Bengkulu", "DI Yogyakarta", "DKI Jakarta", "Gorontalo", "Jambi", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Kalimantan Barat", "Kalimantan Selatan", "Kalimantan Tengah", "Kalimantan Timur", "Kalimantan Utara", "Kep. Bangka Belitung", "Kep. Riau", "Lampung", "Maluku", "Maluku Utara", "Nusa Tenggara Barat", "Nusa Tenggara Timur", "Papua", "Papua Barat", "Papua Barat Daya", "Papua Pegunungan", "Papua Selatan", "Papua Tengah", "Riau", "Sulawesi Barat", "Sulawesi Selatan", "Sulawesi Tengah", "Sulawesi Tenggara", "Sulawesi Utara", "Sumatera Barat", "Sumatera Selatan", "Sumatera Utara"];
-    
-    const provinceSelect = document.getElementById('player-province');
-    provinces.forEach(p => { let opt = document.createElement('option'); opt.value = p; opt.innerHTML = p; provinceSelect.appendChild(opt); });
+    let playerData = { name: "Ranger", gender: "male" };
 
-    function populateProvinceSelect(selectId) {
-      const selectEl = document.getElementById(selectId);
-      if (!selectEl) return;
-      provinces.forEach(p => {
-        let opt = document.createElement('option');
-        opt.value = p;
-        opt.innerHTML = p;
-        selectEl.appendChild(opt);
-      });
+    let notificationTimer = null;
+    function showInGameNotification(message, duration = 1800) {
+      const el = document.getElementById('in-game-notification');
+      if (!el) return;
+      el.textContent = message;
+      el.classList.add('show');
+      if (notificationTimer) clearTimeout(notificationTimer);
+      notificationTimer = setTimeout(() => {
+        el.classList.remove('show');
+      }, duration);
     }
-
-    populateProvinceSelect('mp-p1-province');
-    populateProvinceSelect('mp-p2-province');
 
     function openCharSelect() { SoundManager.play('click'); document.getElementById('main-menu').style.display = 'none'; document.getElementById('char-select-menu').style.display = 'flex'; }
     function closeCharSelect() { SoundManager.play('click'); document.getElementById('char-select-menu').style.display = 'none'; document.getElementById('main-menu').style.display = 'flex'; }
@@ -277,11 +383,9 @@
     function submitMainMenu() {
       SoundManager.play('click');
       let nameInput = document.getElementById('player-name').value;
-      const provInput = document.getElementById('player-province').value;
-      if (!nameInput) { alert("Mohon isi nama Ranger!"); return; }
-      if (!provInput) { alert("Mohon pilih daerah asal!"); return; }
+      if (!nameInput) { showInGameNotification("Mohon isi nama Ranger!"); return; }
       nameInput = filterProfanity(nameInput);
-      playerData.name = nameInput; playerData.province = provInput;
+      playerData.name = nameInput;
       document.getElementById('main-menu').style.display = 'none';
       startGame();
     }
@@ -316,6 +420,7 @@
     let ship = { x: 400, y: 500, width: 60, height: 60, speed: 300 }; 
     let shipLevel = 0;
     let bullets = [], asteroids = [], travelTime = 0, travelDuration = 20, asteroidKills = 0, stars = [], autoShootTimer = 0, particles = [], combo = 0, maxCombo = 0, floatingTexts = [], comboTimer = 0, phaseHitTaken = false;
+    let shipHitFxTimer = 0;
     let approachTimer = 0; let leavingTimer = 0; let leavingShipY = 0; let upgradeTimer = 0;
 
     // Exploration
@@ -327,6 +432,7 @@
     let obstacles = [];
     let envParticles = [];
     let currentOxygen = 100;
+    let oxygenHpDrainTickTimer = 0;
     let oxygenTanks = [];
     let scanTarget = null;
     let scanProgress = 0;
@@ -365,8 +471,8 @@
 
     let mpBattle = {
       players: [
-        { name: 'Player 1', province: '-', role: 'astronaut', gender: 'male', hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 },
-        { name: 'Player 2', province: '-', role: 'alien', alienIndex: 0, hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 }
+        { name: 'Player 1', role: 'astronaut', gender: 'male', hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 },
+        { name: 'Player 2', role: 'alien', alienIndex: 0, hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 }
       ],
       activeTurn: 0,
       questionPools: [[], []],
@@ -468,14 +574,11 @@
     function startMultiplayerGame() {
       const p1Name = filterProfanity((document.getElementById('mp-p1-name')?.value || '').trim());
       const p2Name = filterProfanity((document.getElementById('mp-p2-name')?.value || '').trim());
-      const p1Province = document.getElementById('mp-p1-province')?.value || '';
-      const p2Province = document.getElementById('mp-p2-province')?.value || '';
 
-      if (!p1Name || !p2Name) { alert('Mohon isi nama kedua pemain.'); return; }
-      if (!p1Province || !p2Province) { alert('Mohon pilih provinsi kedua pemain.'); return; }
+      if (!p1Name || !p2Name) { showInGameNotification('Mohon isi nama kedua pemain.'); return; }
 
-      mpBattle.players[0] = { name: p1Name, province: p1Province, role: 'astronaut', gender: mpConfig.p1Gender, hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 };
-      mpBattle.players[1] = { name: p2Name, province: p2Province, role: 'alien', alienIndex: mpConfig.p2AlienIndex, hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 };
+      mpBattle.players[0] = { name: p1Name, role: 'astronaut', gender: mpConfig.p1Gender, hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 };
+      mpBattle.players[1] = { name: p2Name, role: 'alien', alienIndex: mpConfig.p2AlienIndex, hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 };
       initMultiplayerBattle();
       document.getElementById('multiplayer-menu').style.display = 'none';
       SoundManager.play('click');
@@ -590,9 +693,7 @@
         ctx.fillStyle = '#FFF';
         ctx.font = 'bold 18px Arial';
         ctx.textAlign = 'left';
-        ctx.fillText(p.name, panelX + 10, 34);
-        ctx.font = '12px Arial';
-        ctx.fillText(p.province, panelX + 10, 50);
+        ctx.fillText(p.name, panelX + 10, 44);
 
         ctx.fillStyle = '#333';
         ctx.fillRect(panelX + 10, 56, hpW - 20, 10);
@@ -782,7 +883,7 @@
           // Check if "Back to Menu" button is clicked (Visual dimensions: 300x60)
           const btnW = 300; const btnH = 60;
           const btnX = canvas.width/2 - btnW/2; 
-          const btnY = 500;
+          const btnY = canvas.height - 90;
           if (pos.x >= btnX && pos.x <= btnX + btnW && pos.y >= btnY && pos.y <= btnY + btnH) {
               SoundManager.play('click'); resetGame();
           }
@@ -823,13 +924,13 @@
 
     // --- REVISED BATTLE TOUCH LOGIC ---
     function getSingleBattleLayout() {
-      const boxY = 260;
+      const boxY = 280;
       const boxH = canvas.height - boxY;
       const titleH = 34;
-      const questionY = boxY + 54;
-      const buttonH = 32;
-      const buttonGap = 6;
-      const buttonsStartY = boxY + 104;
+      const questionY = boxY + 50;
+      const buttonH = 30;
+      const buttonGap = 5;
+      const buttonsStartY = boxY + 96;
       return { boxY, boxH, titleH, questionY, buttonH, buttonGap, buttonsStartY };
     }
 
@@ -851,7 +952,6 @@
     function startGame() { 
         gameState = GameState.SPACE_TRAVEL; 
         initSpaceTravel(); 
-        SoundManager.playAdventureTheme(); // START BGM (Adventure Theme)
     }
     function resetGame() { 
         currentPlanetIndex=0; playerHP=100; score=0; isPaused=false; shipLevel=0; 
@@ -869,35 +969,134 @@
         ship.x=canvas.width/2; ship.y=canvas.height-100; 
         bullets=[]; asteroids=[]; particles=[]; floatingTexts=[]; 
         travelTime=0; asteroidKills=0; combo=0; maxCombo=0; comboTimer=0; phaseHitTaken=false; 
+        shipHitFxTimer=0;
         travelDuration=20; 
-        initStars(); 
+      initStars();
+      SoundManager.playSpaceTravelTheme();
     }
 
-    function initExploration() { 
-        astronaut.x=canvas.width/2; astronaut.y=canvas.height/2; 
-        explorationPhase='start'; collectedFragments=0; infoFragments=[]; obstacles=[]; 
-        currentOxygen=100; oxygenTanks=[]; activeObstacleHits=0; scanTarget=null; scanProgress=0; 
-        isScanning=false; isScanButtonPressed=false; floatingTexts=[]; 
+    function initExploration() {
+        astronaut.x = canvas.width / 2;
+        astronaut.y = canvas.height / 2;
+        explorationPhase = 'start';
+        collectedFragments = 0;
+        infoFragments = [];
+        obstacles = [];
+        currentOxygen = 100;
+        oxygenHpDrainTickTimer = 0;
+        oxygenTanks = [];
+        activeObstacleHits = 0;
+        scanTarget = null;
+        scanProgress = 0;
+        isScanning = false;
+        isScanButtonPressed = false;
+        floatingTexts = [];
+        SoundManager.playAdventureTheme();
+
         const p = planets[currentPlanetIndex];
         const positions = [{x:150,y:150}, {x:650,y:150}, {x:100,y:450}, {x:700,y:450}, {x:400,y:100}];
         const mgTypes = ['excavation', 'signal', 'drill', 'excavation', 'signal'];
         positions.forEach((pos, i) => infoFragments.push({x: pos.x, y: pos.y, radius: 30, collected: false, data: p.infoFragments[i], pulse: 0, type: p.artifactType, index: i, minigame: mgTypes[i]}));
-        for(let i=0; i<8; i++) {
-          let ox = 100 + Math.random()*600, oy = 100 + Math.random()*400;
-          if(Math.abs(ox-astronaut.x)>100) {
-            obstacles.push({
-              x: ox,
-              y: oy,
-              w: 40,
-              h: 40,
-              rot: Math.random()*6,
-                    rs: (Math.random() - 0.5) * 0.0003,
-              img: Math.random() > 0.5 ? 'asteroid1' : 'asteroid2'
-            });
-          }
+
+        const startPoint = { x: astronaut.x, y: astronaut.y };
+        const pathTargets = positions.map(pos => ({ x: pos.x, y: pos.y }));
+
+        function pointSegmentDistance(px, py, ax, ay, bx, by) {
+          const abx = bx - ax;
+          const aby = by - ay;
+          const apx = px - ax;
+          const apy = py - ay;
+          const abLenSq = (abx * abx) + (aby * aby) || 1;
+          const t = Math.max(0, Math.min(1, ((apx * abx) + (apy * aby)) / abLenSq));
+          const cx = ax + (abx * t);
+          const cy = ay + (aby * t);
+          return Math.sqrt(Math.pow(px - cx, 2) + Math.pow(py - cy, 2));
         }
-        for(let i=0; i<3; i++) { oxygenTanks.push({x: 50+Math.random()*700, y: 50+Math.random()*500, r:15}); }
-        envParticles=[]; for(let i=0; i<40; i++) envParticles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, speed:Math.random()*3+1, size:Math.random()*3});
+
+        function hasClearPathToTarget(targetX, targetY, padding = 58) {
+          for (const o of obstacles) {
+            const cx = o.x + (o.w / 2);
+            const cy = o.y + (o.h / 2);
+            if (pointSegmentDistance(cx, cy, startPoint.x, startPoint.y, targetX, targetY) < padding) {
+              return false;
+            }
+          }
+          return true;
+        }
+
+        function canPlaceObstacle(ox, oy) {
+          const w = 40, h = 40;
+          const cx = ox + (w / 2), cy = oy + (h / 2);
+
+          if (ox < 60 || ox > canvas.width - 100) return false;
+          if (oy < 70 || oy > canvas.height - 110) return false;
+
+          if (Math.sqrt(Math.pow(cx - startPoint.x, 2) + Math.pow(cy - startPoint.y, 2)) < 120) return false;
+
+          for (const pos of positions) {
+            if (Math.sqrt(Math.pow(cx - pos.x, 2) + Math.pow(cy - pos.y, 2)) < 90) return false;
+            if (pointSegmentDistance(cx, cy, startPoint.x, startPoint.y, pos.x, pos.y) < 60) return false;
+          }
+
+          for (const o of obstacles) {
+            const ocx = o.x + (o.w / 2), ocy = o.y + (o.h / 2);
+            if (Math.sqrt(Math.pow(cx - ocx, 2) + Math.pow(cy - ocy, 2)) < 52) return false;
+          }
+
+          return true;
+        }
+
+        const obstacleCount = 10 + Math.floor(Math.random() * 2); // +2 sampai +3 asteroid
+        let obstacleTries = 0;
+        while (obstacles.length < obstacleCount && obstacleTries < 1200) {
+          obstacleTries++;
+          const ox = 60 + (Math.random() * (canvas.width - 160));
+          const oy = 70 + (Math.random() * (canvas.height - 180));
+          if (!canPlaceObstacle(ox, oy)) continue;
+          obstacles.push({
+            x: ox,
+            y: oy,
+            w: 40,
+            h: 40,
+            rot: Math.random() * 6,
+            rs: (Math.random() - 0.5) * 0.0003,
+            img: Math.random() > 0.5 ? 'asteroid1' : 'asteroid2'
+          });
+        }
+
+        const oxygenCount = 3;
+        let oxygenTries = 0;
+        while (oxygenTanks.length < oxygenCount && oxygenTries < 800) {
+          oxygenTries++;
+          const x = 70 + (Math.random() * (canvas.width - 140));
+          const y = 80 + (Math.random() * (canvas.height - 160));
+
+          let blockedByObstacle = false;
+          for (const o of obstacles) {
+            if (x > o.x - 35 && x < o.x + o.w + 35 && y > o.y - 35 && y < o.y + o.h + 35) {
+              blockedByObstacle = true;
+              break;
+            }
+          }
+          if (blockedByObstacle) continue;
+
+          if (!hasClearPathToTarget(x, y, 56)) continue;
+
+          oxygenTanks.push({ x: x, y: y, r: 15 });
+          pathTargets.push({ x: x, y: y });
+        }
+
+        // Fallback jika random gagal: tetap taruh oksigen di titik aman agar pasti bisa dijangkau.
+        while (oxygenTanks.length < oxygenCount) {
+          const fallbackX = startPoint.x + ((oxygenTanks.length - 1) * 120) - 120;
+          const fallbackY = Math.min(canvas.height - 80, startPoint.y + 70 + (oxygenTanks.length * 20));
+          oxygenTanks.push({ x: Math.max(70, Math.min(canvas.width - 70, fallbackX)), y: fallbackY, r: 15 });
+        }
+
+        envParticles = [];
+        for (let i = 0; i < 40; i++) {
+          envParticles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, speed:Math.random()*3+1, size:Math.random()*3});
+        }
     }
 
     function initApproachingPlanet() { approachTimer = 10; }
@@ -954,6 +1153,7 @@
         currentAlien=0; currentQuestion=0; selectedOption=-1; battleMessage=""; showQuestion=true; 
         battleEffects=[]; battleMistakes=0; quizStartTime=Date.now(); floatingTexts=[]; 
         alienAnim={state:'idle', y:0, alpha:1.0, timer:0}; 
+      SoundManager.playBattleTheme();
         const planetQuiz = [...planets[currentPlanetIndex].quiz];
         for (let i = planetQuiz.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -988,6 +1188,22 @@
 
     function updateSpaceTravel(dt) {
       if (isPaused) return; travelTime += dt; stars.forEach(s => { s.y += s.speed * dt; if(s.y > canvas.height) { s.y=0; s.x=Math.random()*canvas.width; }}); if (combo>0) { comboTimer-=dt; if(comboTimer<=0) combo=0; } autoShootTimer+=dt; 
+      if (shipHitFxTimer > 0) {
+        shipHitFxTimer = Math.max(0, shipHitFxTimer - dt);
+        if (Math.random() < 0.9) {
+          for (let i = 0; i < 2; i++) {
+            particles.push({
+              x: ship.x + (Math.random() * ship.width),
+              y: ship.y + (Math.random() * ship.height * 0.7),
+              vx: (Math.random() - 0.5) * 320,
+              vy: (Math.random() - 0.2) * 320,
+              life: 6 + (Math.random() * 2),
+              decay: 16,
+              c: Math.random() > 0.5 ? '#FFA500' : '#FFD166'
+            });
+          }
+        }
+      }
       if(autoShootTimer>0.3) { 
         const y = ship.y - 20; const x = ship.x; const w = ship.width;
         if (shipLevel === 0) { bullets.push({x: x + w/2 - 3, y: y, w:6, h:20, s:480, angle: 0}); }
@@ -1001,20 +1217,159 @@
       bullets = bullets.filter(b => { b.y-=b.s*dt; if (b.angle) b.x += Math.sin(b.angle) * b.s * dt; return b.y>0; });
       asteroids = asteroids.filter(a => {
         a.y+=a.s*dt; a.r+=a.rs; if(a.hitTimer>0) a.hitTimer--;
-        if(a.x < ship.x+ship.width && a.x+a.w > ship.x && a.y < ship.y+ship.height && a.y+a.h > ship.y) { playerHP-=10; phaseHitTaken=true; if(combo>1) showFloatingText("COMBO HILANG!", ship.x, ship.y-50, '#F00'); combo=0; SoundManager.play('hit'); for(let i=0; i<5; i++) particles.push({x:ship.x+ship.width/2, y:ship.y, vx:(Math.random()-0.5)*300, vy:(Math.random()-0.5)*300, life:0.5, c:'#F00'}); if(playerHP<=0) { gameState=GameState.GAME_OVER; SoundManager.stopBGM(); } return false; }
+        if(a.x < ship.x+ship.width && a.x+a.w > ship.x && a.y < ship.y+ship.height && a.y+a.h > ship.y) { playerHP-=10; phaseHitTaken=true; shipHitFxTimer = 0.45; if(combo>1) showFloatingText("COMBO HILANG!", ship.x, ship.y-50, '#F00'); showFloatingText("KENA ASTEROID!", ship.x + (ship.width/2), ship.y - 10, '#FFA500'); combo=0; SoundManager.play('hit'); for(let i=0; i<22; i++) particles.push({x:ship.x+ship.width/2, y:ship.y+(ship.height*0.45), vx:(Math.random()-0.5)*620, vy:(Math.random()-0.3)*620, life:7 + (Math.random()*2), decay: 14, c: (i % 3 === 0 ? '#FF4500' : (i % 2 === 0 ? '#FFD166' : '#FFA500'))}); if(playerHP<=0) { gameState=GameState.GAME_OVER; SoundManager.stopBGM(); } return false; }
         let cx=a.x+a.w/2, cy=a.y+a.h/2, sx=ship.x+ship.width/2, sy=ship.y+ship.height/2; let dist = Math.sqrt(Math.pow(cx-sx,2)+Math.pow(cy-sy,2)); if(!a.grazed && dist < (a.w/2+ship.width/2)+30 && dist > (a.w/2+ship.width/2)) { a.grazed=true; score+=20; showFloatingText("NYARIS!", ship.x+40, ship.y, '#0FF'); }
         for(let i=bullets.length-1; i>=0; i--) { let b = bullets[i]; if(b.x < a.x+a.w && b.x+b.w > a.x && b.y < a.y+a.h && b.y+b.h > a.y) { bullets.splice(i,1); a.hp--; a.hitTimer=5; for(let p=0; p<3; p++) particles.push({x:b.x, y:b.y, vx:(Math.random()-0.5)*240, vy:(Math.random()-0.5)*240, life:0.3, c:'#FFF'}); if(a.hp<=0) { asteroidKills++; stats.asteroidsDestroyed++; combo++; comboTimer=2.0; let mult = 1+(combo*0.05); let base = a.maxHp>1 ? 30 : 10; let fs=Math.floor(base*mult); score+=fs; showFloatingText(`+${fs}`+(combo>1?` x${mult.toFixed(1)}`:''), a.x, a.y, '#FF0'); SoundManager.play('explosion'); for(let p=0; p<10+(a.maxHp*2); p++) particles.push({x:cx, y:cy, vx:(Math.random()-0.5)*480, vy:(Math.random()-0.5)*480, life:0.8, c:'#DAA520'}); return false; } return true; } } return a.y < canvas.height+50;
       });
-      particles = particles.filter(p => { p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt; return p.life>0; }); floatingTexts = floatingTexts.filter(t => { t.y-=60*dt; t.life-=dt; return t.life>0; }); if(travelTime >= travelDuration) { if(!phaseHitTaken) { score+=200; showFloatingText("PERFECT HP +200", canvas.width/2, canvas.height/2, '#0F0'); } gameState = GameState.APPROACHING_PLANET; initApproachingPlanet(); }
+      particles = particles.filter(p => { p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=(dt * (p.decay || 1)); return p.life>0; }); floatingTexts = floatingTexts.filter(t => { t.y-=60*dt; t.life-=dt; return t.life>0; }); if(travelTime >= travelDuration) { if(!phaseHitTaken) { score+=200; showFloatingText("PERFECT HP +200", canvas.width/2, canvas.height/2, '#0F0'); } gameState = GameState.APPROACHING_PLANET; initApproachingPlanet(); }
     }
 
     function updateExploration(dt) {
-      if (explorationPhase === 'complete' || isPaused) return; const planet = planets[currentPlanetIndex]; currentOxygen -= 3 * dt; if (currentOxygen <= 0) { playerHP = 0; gameState = GameState.GAME_OVER; SoundManager.stopBGM(); return; } let wx = (planet.envType === 'wind') ? (Math.sin(Date.now()/1000) * 0.5) : 0;
-      envParticles.forEach(p => { if(planet.envType === 'wind' || planet.envType === 'ice') { p.x += (p.speed + wx*300) * dt; p.y += p.speed * dt; } else if(planet.envType === 'heat') { p.y -= p.speed * dt; } else { p.x += 12 * dt; p.y += 6 * dt; } if(p.x>canvas.width) p.x=0; if(p.x<0) p.x=canvas.width; if(p.y>canvas.height) p.y=0; if(p.y<0) p.y=canvas.height; });
-      if (!isScanButtonPressed) { let tx = astronaut.x, ty = astronaut.y; if (isTouching && touchX !== null) { const dx = touchX - astronaut.x, dy = touchY - astronaut.y; const dist = Math.sqrt(dx*dx + dy*dy); let step = astronaut.speed * dt; if(dist > 5) { tx += (dx/dist) * step; ty += (dy/dist) * step; } } tx += wx * 60 * dt; let col = false; obstacles.forEach(o => { if(planet.envType==='wind') o.x += Math.sin(Date.now()/500)*60*dt; }); for(let o of obstacles) { if(tx>o.x-25 && tx<o.x+o.w+25 && ty>o.y-35 && ty<o.y+o.h+35) { col=true; activeObstacleHits++; break; } } if(tx<25 || tx>canvas.width-25) col=true; if(ty<35 || ty>canvas.height-35) col=true; if(!col) { astronaut.x = tx; astronaut.y = ty; } }
-      oxygenTanks=oxygenTanks.filter(t=>{ if(Math.sqrt(Math.pow(astronaut.x-t.x,2)+Math.pow(astronaut.y-t.y,2))<40){ currentOxygen=Math.min(100,currentOxygen+30); score+=10; SoundManager.play('collect'); return false; } return true; });
-      scanTarget=null; infoFragments.forEach(f => { if(!f.collected) { f.pulse+=6*dt; if(Math.sqrt(Math.pow(astronaut.x-f.x,2)+Math.pow(astronaut.y-f.y,2))<70) scanTarget=f; } });
-      if(scanTarget && isScanButtonPressed) { isScanning=true; scanProgress+=60*dt; if (Math.random() < 0.1) SoundManager.play('scan'); if(scanProgress>=scanRequired) { startMinigame(scanTarget); scanProgress=0; isScanning=false; scanTarget=null; isScanButtonPressed=false; } } else { isScanning=false; scanProgress=Math.max(0, scanProgress-120*dt); } floatingTexts = floatingTexts.filter(t => { t.y -= 60 * dt; t.life -= dt; return t.life > 0; });
+      if (explorationPhase === 'complete' || isPaused) return;
+
+      const planet = planets[currentPlanetIndex];
+      currentOxygen -= 3 * dt;
+      if (currentOxygen <= 0) {
+        currentOxygen = 0;
+        oxygenHpDrainTickTimer += dt;
+        while (oxygenHpDrainTickTimer >= 1) {
+          playerHP -= 10;
+          oxygenHpDrainTickTimer -= 1;
+        }
+        if (playerHP <= 0) {
+          playerHP = 0;
+          gameState = GameState.GAME_OVER;
+          SoundManager.stopBGM();
+          return;
+        }
+      } else {
+        oxygenHpDrainTickTimer = 0;
+      }
+
+      let wx = (planet.envType === 'wind') ? (Math.sin(Date.now() / 1000) * 0.5) : 0;
+
+      envParticles.forEach(p => {
+        if (planet.envType === 'wind' || planet.envType === 'ice') {
+          p.x += (p.speed + wx * 300) * dt;
+          p.y += p.speed * dt;
+        } else if (planet.envType === 'heat') {
+          p.y -= p.speed * dt;
+        } else {
+          p.x += 12 * dt;
+          p.y += 6 * dt;
+        }
+        if (p.x > canvas.width) p.x = 0;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.y > canvas.height) p.y = 0;
+        if (p.y < 0) p.y = canvas.height;
+      });
+
+      if (!isScanButtonPressed) {
+        obstacles.forEach(o => {
+          if (planet.envType === 'wind') o.x += Math.sin(Date.now() / 500) * 60 * dt;
+        });
+
+        const isBlocked = (x, y) => {
+          if (x < 25 || x > canvas.width - 25) return true;
+          if (y < 35 || y > canvas.height - 35) return true;
+          for (const o of obstacles) {
+            if (x > o.x - 25 && x < o.x + o.w + 25 && y > o.y - 35 && y < o.y + o.h + 35) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        const startX = astronaut.x;
+        const startY = astronaut.y;
+        let targetX = startX;
+        let targetY = startY;
+
+        if (isTouching && touchX !== null) {
+          const dx = touchX - startX;
+          const dy = touchY - startY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const step = astronaut.speed * dt;
+          if (dist > 5) {
+            targetX += (dx / dist) * step;
+            targetY += (dy / dist) * step;
+          }
+        }
+
+        targetX += wx * 60 * dt;
+
+        if (!isBlocked(targetX, targetY)) {
+          astronaut.x = targetX;
+          astronaut.y = targetY;
+        } else {
+          activeObstacleHits++;
+
+          // If diagonal movement is blocked, allow a slower side-step to reduce "stuck" feeling.
+          const moveX = targetX - startX;
+          const moveY = targetY - startY;
+          const slideFactor = 0.28;
+          let moved = false;
+
+          const slideX = startX + (moveX * slideFactor);
+          if (!isBlocked(slideX, startY)) {
+            astronaut.x = slideX;
+            moved = true;
+          }
+
+          const slideY = startY + (moveY * slideFactor);
+          if (!moved && !isBlocked(startX, slideY)) {
+            astronaut.y = slideY;
+            moved = true;
+          }
+
+          if (!moved && Math.abs(moveX) > 0.001) {
+            const microX = startX + (Math.sign(moveX) * Math.max(0.8, Math.abs(moveX) * 0.15));
+            if (!isBlocked(microX, startY)) {
+              astronaut.x = microX;
+            }
+          }
+        }
+      }
+
+      oxygenTanks = oxygenTanks.filter(t => {
+        if (Math.sqrt(Math.pow(astronaut.x - t.x, 2) + Math.pow(astronaut.y - t.y, 2)) < 40) {
+          currentOxygen = Math.min(100, currentOxygen + 30);
+          score += 10;
+          SoundManager.play('collect');
+          return false;
+        }
+        return true;
+      });
+
+      scanTarget = null;
+      infoFragments.forEach(f => {
+        if (!f.collected) {
+          f.pulse += 6 * dt;
+          if (Math.sqrt(Math.pow(astronaut.x - f.x, 2) + Math.pow(astronaut.y - f.y, 2)) < 70) scanTarget = f;
+        }
+      });
+
+      if (scanTarget && isScanButtonPressed) {
+        isScanning = true;
+        scanProgress += 60 * dt;
+        if (Math.random() < 0.1) SoundManager.play('scan');
+        if (scanProgress >= scanRequired) {
+          startMinigame(scanTarget);
+          scanProgress = 0;
+          isScanning = false;
+          scanTarget = null;
+          isScanButtonPressed = false;
+        }
+      } else {
+        isScanning = false;
+        scanProgress = Math.max(0, scanProgress - 120 * dt);
+      }
+
+      floatingTexts = floatingTexts.filter(t => {
+        t.y -= 60 * dt;
+        t.life -= dt;
+        return t.life > 0;
+      });
     }
 
     function updateReading(dt) { readingTimer -= dt; if (readingTimer <= 0) { gameState = GameState.BATTLE; initBattle(); } }
@@ -1056,9 +1411,13 @@
     // --- DRAWING ---
     function drawHUD() { 
       ctx.save(); 
-      ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'left'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4; 
-      ctx.fillText(`Ranger: ${playerData.name}`, 20, 30); 
-      ctx.fillStyle = playerHP > 50 ? '#0F0' : (playerHP > 20 ? '#FF0' : '#F00'); ctx.fillText(`HP: ${playerHP}%`, 20, 60); 
+      const compactTopHud = gameState === GameState.READING;
+      const hudNameY = compactTopHud ? 22 : 30;
+      const hudHpY = compactTopHud ? 44 : 60;
+      ctx.fillStyle = '#FFF'; ctx.font = compactTopHud ? 'bold 18px Arial' : 'bold 20px Arial'; ctx.textAlign = 'left'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4; 
+      ctx.fillText(`Ranger: ${playerData.name}`, 20, hudNameY); 
+      const displayHP = Math.max(0, Math.min(100, Math.round(playerHP)));
+      ctx.fillStyle = playerHP > 50 ? '#0F0' : (playerHP > 20 ? '#FF0' : '#F00'); ctx.fillText(`HP: ${displayHP}%`, 20, hudHpY); 
       
       // --- PERBAIKAN POSISI SKOR ---
       ctx.textAlign = 'center'; ctx.fillStyle = '#FFD700'; 
@@ -1090,7 +1449,7 @@
     function drawApproachingPlanet() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const p = planets[currentPlanetIndex]; ctx.fillStyle = p.color; const progress = 1 - (approachTimer / 10); const planetX = (canvas.width + 400) - (progress * 600); ctx.beginPath(); ctx.arc(planetX, canvas.height/2, 400, 0, 6.28); ctx.fill(); let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; const shipX = -100 + (progress * (canvas.width/2 + 100)); ctx.save(); ctx.translate(shipX, canvas.height/2); ctx.rotate(Math.PI/2); if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, -ship.width/2, -ship.height/2, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(-ship.width/2, -ship.height/2, ship.width, ship.height); } ctx.restore(); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center'; ctx.shadowColor = '#000'; ctx.shadowBlur = 5; ctx.fillText(`Mendekati Planet ${p.name}...`, canvas.width/2, canvas.height/2 - 20); ctx.fillStyle = '#FFF'; ctx.font = '18px Arial'; ctx.fillText(`Mendarat dalam ${Math.ceil(approachTimer)}...`, canvas.width/2, canvas.height/2 + 30); ctx.shadowBlur = 0; drawHUD(); }
     function drawLeavingPlanet() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const p = planets[currentPlanetIndex]; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height + 300, 400, 0, 6.28); ctx.fill(); let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; ctx.save(); ctx.translate(canvas.width/2, leavingShipY); if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, -ship.width/2, -ship.height/2, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(-ship.width/2, -ship.height/2, ship.width, ship.height); } ctx.restore(); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center'; ctx.fillText(`Meninggalkan Planet ${p.name}...`, canvas.width/2, 100); drawHUD(); }
     function drawRoadmap() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const startX = 100, endX = canvas.width - 100, y = canvas.height / 2; ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.setLineDash([10, 10]); ctx.beginPath(); ctx.moveTo(startX, y); ctx.lineTo(endX, y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(startX - 50, y, 40, 0, 6.28); ctx.fill(); planets.forEach((p, i) => { const px = startX + (i * ((endX - startX) / (planets.length - 1))); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(px, y, 15 + (i*2), 0, 6.28); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText(p.name, px, y + 40); if (i === currentPlanetIndex) { ctx.strokeStyle = '#0F0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, y, 25 + (i*2), 0, 6.28); ctx.stroke(); } }); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4; ctx.fillText("PETA GALAKSI BIMASAKTI", canvas.width/2, 60); ctx.shadowBlur = 0; ctx.fillStyle = '#333'; ctx.fillRect(20, 20, 130, 50); ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, 130, 50); ctx.fillStyle = '#FFF'; ctx.font = 'bold 18px Arial'; ctx.fillText("KEMBALI", 85, 52); }
-    function drawExploration() { const planet = planets[currentPlanetIndex]; const grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, planet.color); grad.addColorStop(1, '#000'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); envParticles.forEach(p => { if(planet.envType==='dust') ctx.fillStyle='rgba(200,100,50,0.5)'; else if(planet.envType==='heat') ctx.fillStyle='rgba(255,200,100,0.2)'; else ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 6.28); ctx.fill(); }); if(planet.envType==='heat') { ctx.fillStyle = `rgba(255,0,0,${0.1+Math.sin(Date.now()/500)*0.05})`; ctx.fillRect(0,0,canvas.width,canvas.height); } obstacles.forEach(o => { o.rot += (o.rs || 0); ctx.save(); ctx.translate(o.x + o.w/2, o.y + o.h/2); ctx.rotate(o.rot); const obstacleImg = images[o.img]; if (obstacleImg && obstacleImg.complete && obstacleImg.naturalWidth !== 0) { ctx.drawImage(obstacleImg, -o.w/2, -o.h/2, o.w, o.h); } else { ctx.fillStyle='#5C4033'; ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h); ctx.fillStyle='#3E2723'; ctx.beginPath(); ctx.arc(5,5,10,0,6.28); ctx.fill(); } ctx.restore(); }); oxygenTanks.forEach(t => { const f = Math.sin(Date.now()/300)*3; ctx.fillStyle = '#00BFFF'; ctx.beginPath(); ctx.roundRect(t.x-8, t.y-12+f, 16, 24, 4); ctx.fill(); ctx.fillStyle = '#E0F7FA'; ctx.fillRect(t.x-4, t.y-10+f, 4, 20); ctx.fillStyle = '#888'; ctx.fillRect(t.x-6, t.y-16+f, 12, 4); }); infoFragments.forEach(f => { if(!f.collected) { const p = Math.sin(f.pulse)*5; ctx.shadowBlur=15; ctx.shadowColor='#FFD700'; ctx.fillStyle='rgba(255,215,0,0.3)'; ctx.beginPath(); ctx.arc(f.x, f.y, 25+p, 0, 6.28); ctx.fill(); ctx.shadowBlur=0; ctx.fillStyle='#FFF'; ctx.beginPath(); ctx.arc(f.x, f.y, 10, 0, 6.28); ctx.fill(); } }); ctx.save(); ctx.translate(astronaut.x, astronaut.y); if(planet.envType==='wind') ctx.rotate(0.1); const charImg = (playerData.gender === 'male') ? images.exploreMale : images.exploreFemale; if (charImg.complete && charImg.naturalWidth !== 0) { ctx.drawImage(charImg, -astronaut.width/2, -astronaut.height/2, astronaut.width, astronaut.height); } else { ctx.fillStyle='#FFF'; ctx.fillRect(-15,-30,30,60); } if (isScanning && scanTarget) { ctx.strokeStyle = '#0F0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 40, -Math.PI/2, (-Math.PI/2) + (Math.PI*2 * (scanProgress/scanRequired))); ctx.stroke(); } ctx.restore(); if (currentPlanetIndex >= 4) { const gradient = ctx.createRadialGradient(astronaut.x, astronaut.y, 50, astronaut.x, astronaut.y, 250); gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(1, 'rgba(0,0,0,0.95)'); ctx.fillStyle = gradient; ctx.fillRect(0,0,canvas.width, canvas.height); } drawHUD(); ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.font='bold 20px Arial'; ctx.fillText(`Artefak: ${collectedFragments}/${totalFragments}`, canvas.width/2, 30); ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.roundRect(canvas.width-220, 20, 200, 30, 5); ctx.fill(); const ow = (currentOxygen/100)*190; ctx.fillStyle = currentOxygen>20 ? '#00BFFF':'#F00'; ctx.beginPath(); ctx.roundRect(canvas.width-215, 25, ow, 20, 3); ctx.fill(); ctx.fillStyle='#FFF'; ctx.font='bold 14px Arial'; ctx.textAlign='right'; ctx.fillText("OKSIGEN", canvas.width-230, 40); if (scanTarget && !scanTarget.collected) { const btnX = astronaut.x; const btnY = astronaut.y - 80; const r = 40; ctx.beginPath(); ctx.moveTo(btnX, btnY); ctx.lineTo(scanTarget.x, scanTarget.y); ctx.strokeStyle = 'rgba(50,205,50,0.5)'; ctx.lineWidth=2; ctx.stroke(); ctx.beginPath(); ctx.arc(btnX, btnY, r, 0, 6.28); ctx.fillStyle = isScanButtonPressed ? '#32CD32' : 'rgba(0,255,0,0.6)'; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.stroke(); ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.font='bold 12px Arial'; ctx.fillText("TAHAN", btnX, btnY-5); ctx.fillText("SCAN", btnX, btnY+15); } if(collectedFragments > 0) { const startX = 20; const boxWidth = 260; const maxWidth = 240; const lineHeight = 16; let linesToDraw = []; ctx.font = '12px Arial'; infoFragments.forEach(f => { if(f.collected) { const words = f.data.short.split(' '); let line = '> '; for(let n = 0; n < words.length; n++) { const testLine = line + words[n] + ' '; const metrics = ctx.measureText(testLine); if (metrics.width > maxWidth && n > 0) { linesToDraw.push(line); line = '  ' + words[n] + ' '; } else { line = testLine; } } linesToDraw.push(line); linesToDraw.push(''); } }); const boxHeight = Math.min((linesToDraw.length * lineHeight) + 40, canvas.height - 150); ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.roundRect(10, 100, boxWidth, boxHeight, 10); ctx.fill(); ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle='#FFD700'; ctx.textAlign='left'; ctx.font='bold 14px Arial'; ctx.fillText("FAKTA DITEMUKAN:", 20, 125); ctx.fillStyle='#FFF'; ctx.font='12px Arial'; let yp = 150; for (let i = 0; i < linesToDraw.length; i++) { if (yp < 100 + boxHeight - 10) { ctx.fillText(linesToDraw[i], startX, yp); yp += lineHeight; } } } floatingTexts.forEach(t => { ctx.fillStyle = t.color; ctx.globalAlpha = t.life/60; ctx.font = 'bold 20px Arial'; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); ctx.globalAlpha=1.0; }); }
+    function drawExploration() { const planet = planets[currentPlanetIndex]; const grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, planet.color); grad.addColorStop(1, '#000'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); envParticles.forEach(p => { if(planet.envType==='dust') ctx.fillStyle='rgba(200,100,50,0.5)'; else if(planet.envType==='heat') ctx.fillStyle='rgba(255,200,100,0.2)'; else ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 6.28); ctx.fill(); }); if(planet.envType==='heat') { ctx.fillStyle = `rgba(255,0,0,${0.1+Math.sin(Date.now()/500)*0.05})`; ctx.fillRect(0,0,canvas.width,canvas.height); } obstacles.forEach(o => { o.rot += (o.rs || 0); ctx.save(); ctx.translate(o.x + o.w/2, o.y + o.h/2); ctx.rotate(o.rot); const obstacleImg = images[o.img]; if (obstacleImg && obstacleImg.complete && obstacleImg.naturalWidth !== 0) { ctx.drawImage(obstacleImg, -o.w/2, -o.h/2, o.w, o.h); } else { ctx.fillStyle='#5C4033'; ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h); ctx.fillStyle='#3E2723'; ctx.beginPath(); ctx.arc(5,5,10,0,6.28); ctx.fill(); } ctx.restore(); }); oxygenTanks.forEach(t => { const f = Math.sin(Date.now()/300)*3; ctx.fillStyle = '#00BFFF'; ctx.beginPath(); ctx.roundRect(t.x-8, t.y-12+f, 16, 24, 4); ctx.fill(); ctx.fillStyle = '#E0F7FA'; ctx.fillRect(t.x-4, t.y-10+f, 4, 20); ctx.fillStyle = '#888'; ctx.fillRect(t.x-6, t.y-16+f, 12, 4); }); infoFragments.forEach(f => { if(!f.collected) { const p = Math.sin(f.pulse)*5; ctx.shadowBlur=15; ctx.shadowColor='#FFD700'; ctx.fillStyle='rgba(255,215,0,0.3)'; ctx.beginPath(); ctx.arc(f.x, f.y, 25+p, 0, 6.28); ctx.fill(); ctx.shadowBlur=0; ctx.fillStyle='#FFF'; ctx.beginPath(); ctx.arc(f.x, f.y, 10, 0, 6.28); ctx.fill(); } }); ctx.save(); ctx.translate(astronaut.x, astronaut.y); if(planet.envType==='wind') ctx.rotate(0.1); const charImg = (playerData.gender === 'male') ? images.exploreMale : images.exploreFemale; if (charImg.complete && charImg.naturalWidth !== 0) { ctx.drawImage(charImg, -astronaut.width/2, -astronaut.height/2, astronaut.width, astronaut.height); } else { ctx.fillStyle='#FFF'; ctx.fillRect(-15,-30,30,60); } if (isScanning && scanTarget) { ctx.strokeStyle = '#0F0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 40, -Math.PI/2, (-Math.PI/2) + (Math.PI*2 * (scanProgress/scanRequired))); ctx.stroke(); } ctx.restore(); if (currentPlanetIndex >= 4) { const gradient = ctx.createRadialGradient(astronaut.x, astronaut.y, 50, astronaut.x, astronaut.y, 250); gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(1, 'rgba(0,0,0,0.95)'); ctx.fillStyle = gradient; ctx.fillRect(0,0,canvas.width, canvas.height); } drawHUD(); ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.font='bold 20px Arial'; ctx.fillText(`Artefak: ${collectedFragments}/${totalFragments}`, canvas.width/2, 30); const oxygenPanelW = 150, oxygenPanelH = 22; const oxygenPanelX = canvas.width - oxygenPanelW - 150; const oxygenPanelY = 30; ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.roundRect(oxygenPanelX, oxygenPanelY, oxygenPanelW, oxygenPanelH, 5); ctx.fill(); const ow = (currentOxygen/100)*(oxygenPanelW-6); ctx.fillStyle = currentOxygen>20 ? '#00BFFF':'#F00'; ctx.beginPath(); ctx.roundRect(oxygenPanelX+3, oxygenPanelY+3, ow, oxygenPanelH-6, 3); ctx.fill(); ctx.fillStyle='#FFF'; ctx.font='bold 13px Arial'; ctx.textAlign='right'; ctx.fillText("OKSIGEN", oxygenPanelX-8, oxygenPanelY+16); if (scanTarget && !scanTarget.collected) { const btnX = astronaut.x; const btnY = astronaut.y - 80; const r = 40; ctx.beginPath(); ctx.moveTo(btnX, btnY); ctx.lineTo(scanTarget.x, scanTarget.y); ctx.strokeStyle = 'rgba(50,205,50,0.5)'; ctx.lineWidth=2; ctx.stroke(); ctx.beginPath(); ctx.arc(btnX, btnY, r, 0, 6.28); ctx.fillStyle = isScanButtonPressed ? '#32CD32' : 'rgba(0,255,0,0.6)'; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.stroke(); ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.font='bold 12px Arial'; ctx.fillText("TAHAN", btnX, btnY-5); ctx.fillText("SCAN", btnX, btnY+15); } if(collectedFragments > 0) { const startX = 20; const boxWidth = 260; const maxWidth = 240; const lineHeight = 16; let linesToDraw = []; ctx.font = '12px Arial'; infoFragments.forEach(f => { if(f.collected) { const words = f.data.short.split(' '); let line = '> '; for(let n = 0; n < words.length; n++) { const testLine = line + words[n] + ' '; const metrics = ctx.measureText(testLine); if (metrics.width > maxWidth && n > 0) { linesToDraw.push(line); line = '  ' + words[n] + ' '; } else { line = testLine; } } linesToDraw.push(line); linesToDraw.push(''); } }); const boxHeight = Math.min((linesToDraw.length * lineHeight) + 40, canvas.height - 150); ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.roundRect(10, 100, boxWidth, boxHeight, 10); ctx.fill(); ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle='#FFD700'; ctx.textAlign='left'; ctx.font='bold 14px Arial'; ctx.fillText("FAKTA DITEMUKAN:", 20, 125); ctx.fillStyle='#FFF'; ctx.font='12px Arial'; let yp = 150; for (let i = 0; i < linesToDraw.length; i++) { if (yp < 100 + boxHeight - 10) { ctx.fillText(linesToDraw[i], startX, yp); yp += lineHeight; } } } floatingTexts.forEach(t => { ctx.fillStyle = t.color; ctx.globalAlpha = t.life/60; ctx.font = 'bold 20px Arial'; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); ctx.globalAlpha=1.0; }); }
     function drawSignal() {
       const frameW = 400;
       const frameH = 300;
@@ -1125,7 +1484,7 @@
       const planet = planets[currentPlanetIndex];
       ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0,0,canvas.width,canvas.height);
       const charImg = (playerData.gender === 'male') ? images.battleMale : images.battleFemale; if (charImg.complete && charImg.naturalWidth !== 0) { ctx.drawImage(charImg, 80, 100, 120, 160); }
-      const hpBarX = 90; const hpBarY = 270; ctx.fillStyle='#333'; ctx.fillRect(hpBarX, hpBarY, 100, 15); ctx.fillStyle='#0F0'; ctx.fillRect(hpBarX, hpBarY, playerHP, 15); ctx.strokeStyle='#FFF'; ctx.lineWidth=2; ctx.strokeRect(hpBarX, hpBarY, 100, 15);
+      const hpBarX = 96; const hpBarY = 244; const hpBarW = 72; const hpBarH = 9; const hpRatio = Math.max(0, Math.min(100, playerHP)) / 100; ctx.fillStyle='#333'; ctx.fillRect(hpBarX, hpBarY, hpBarW, hpBarH); ctx.fillStyle='#0F0'; ctx.fillRect(hpBarX, hpBarY, hpBarW * hpRatio, hpBarH); ctx.strokeStyle='#FFF'; ctx.lineWidth=2; ctx.strokeRect(hpBarX, hpBarY, hpBarW, hpBarH);
 
       if (alienAnim.state !== 'dying' || alienAnim.y < 500) {
           const float = alienAnim.state === 'dying' ? 0 : Math.sin(Date.now()/400)*5;
@@ -1267,7 +1626,7 @@
       // Back to Menu Button
       const btnW = 300, btnH = 60;
       const btnX = canvas.width/2 - btnW/2;
-      const btnY = 500;
+      const btnY = canvas.height - 90;
       
       // Button Pulse Effect
       const pulse = Math.sin(Date.now() / 300) * 2;
@@ -1305,27 +1664,57 @@
 
     initStars();
 
-    function updateMusicButtonUi() {
-      const btn = document.getElementById('music-toggle-btn');
-      if (!btn) return;
-      if (SoundManager.musicEnabled) {
-        btn.textContent = 'MUSIK ON';
-        btn.title = 'Matikan Musik';
-        btn.classList.remove('music-off');
-      } else {
-        btn.textContent = 'MUSIK OFF';
-        btn.title = 'Nyalakan Musik';
-        btn.classList.add('music-off');
+    let isAudioPopupOpen = false;
+
+    function setAudioPopupOpen(open) {
+      const popup = document.getElementById('audio-popup');
+      const menuBtn = document.getElementById('audio-menu-btn');
+      if (!popup || !menuBtn) return;
+      isAudioPopupOpen = !!open;
+      popup.classList.toggle('open', isAudioPopupOpen);
+      menuBtn.classList.toggle('active', isAudioPopupOpen);
+      menuBtn.title = isAudioPopupOpen ? 'Tutup pengaturan audio' : 'Buka pengaturan audio';
+    }
+
+    function updateAudioButtonsUi() {
+      const musicBtn = document.getElementById('music-toggle-btn');
+      const sfxBtn = document.getElementById('sfx-toggle-btn');
+      if (musicBtn) {
+        musicBtn.classList.toggle('music-off', !SoundManager.musicEnabled);
+        musicBtn.title = SoundManager.musicEnabled ? 'Matikan musik latar' : 'Nyalakan musik latar';
       }
+      if (sfxBtn) {
+        sfxBtn.classList.toggle('sfx-off', !SoundManager.sfxEnabled);
+        sfxBtn.title = SoundManager.sfxEnabled ? 'Matikan sound effect' : 'Nyalakan sound effect';
+      }
+    }
+
+    function toggleAudioPopup() {
+      SoundManager.resume();
+      setAudioPopupOpen(!isAudioPopupOpen);
     }
 
     function toggleMusic() {
       SoundManager.resume();
       SoundManager.setMusicEnabled(!SoundManager.musicEnabled);
-      updateMusicButtonUi();
+      updateAudioButtonsUi();
     }
 
-    updateMusicButtonUi();
+    function toggleSfx() {
+      SoundManager.resume();
+      SoundManager.setSfxEnabled(!SoundManager.sfxEnabled);
+      updateAudioButtonsUi();
+    }
+
+    document.addEventListener('pointerdown', (event) => {
+      const controls = document.getElementById('audio-controls');
+      if (!controls) return;
+      if (!controls.contains(event.target)) {
+        setAudioPopupOpen(false);
+      }
+    });
+
+    updateAudioButtonsUi();
 
     requestAnimationFrame(gameLoop);
 
