@@ -1,0 +1,7 @@
+name = "littlespaceranger"
+compatibility_date = "2026-05-06"
+main = "src/index.js"
+
+[assets]
+directory = "."
+binding = "ASSETS"

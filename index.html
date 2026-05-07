@@ -1,0 +1,148 @@
+﻿<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Little Space Ranger</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./styles.css">
+ </head>
+ <body>
+  <div class="game-container">
+   <div class="game-content">
+      <canvas id="gameCanvas" width="960" height="540"></canvas>
+       
+       <!-- UI Layer -->
+       <div id="ui-layer">
+         
+         <!-- MAIN MENU -->
+         <div id="main-menu">
+           <h1 class="text-5xl font-bold text-yellow-400 mb-4 menu-title">LITTLE SPACE RANGER</h1>
+           
+           <div class="glass-panel">
+             <div class="menu-left">
+                 <div class="input-group">
+                   <label>NAMA RANGER:</label>
+                   <input type="text" id="player-name" placeholder="Ketik namamu..." maxlength="15">
+                 </div>
+                 <div class="input-group">
+                   <label>DAERAH ASAL:</label>
+                   <select id="player-province">
+                     <option value="" disabled selected>-- Pilih Provinsi --</option>
+                   </select>
+                 </div>
+                 <button class="start-btn mt-2" onclick="submitMainMenu()">MULAI MISI</button>
+                 <button class="roadmap-btn mp-mode-btn" onclick="openMultiplayerMenu()">MODE MULTIPLAYER</button>
+                 <button class="roadmap-btn" onclick="showMenuRoadmap()">PETA MISI</button>
+                 <button class="roadmap-btn leaderboard-btn" onclick="openLeaderboard()">PAPAN SKOR</button>
+             </div>
+             
+             <div class="menu-right">
+               <label class="menu-character-label">KARAKTER:</label>
+                 <div class="char-preview-box">
+                    <img id="current-char-img" src="./assets/images/char-select-male.png">
+                 </div>
+                 <button class="change-btn" onclick="openCharSelect()">Ganti</button>
+             </div>
+           </div>
+         </div>
+
+         <!-- MULTIPLAYER SETUP MENU -->
+         <div id="multiplayer-menu">
+          <button class="back-btn" onclick="closeMultiplayerMenu()">KEMBALI</button>
+          <h2 class="text-4xl font-bold text-yellow-400 mb-4 menu-heading">MULTIPLAYER SPLIT SCREEN</h2>
+          <div class="multiplayer-panel">
+            <div class="mp-side">
+              <h3 class="mp-title astronaut">PLAYER 1 - ASTRONOT</h3>
+              <div class="input-group">
+                <label>NAMA PLAYER 1:</label>
+                <input type="text" id="mp-p1-name" placeholder="Nama Astronot" maxlength="15">
+              </div>
+              <div class="input-group">
+                <label>ASAL PROVINSI:</label>
+                <select id="mp-p1-province">
+                  <option value="" disabled selected>-- Pilih Provinsi --</option>
+                </select>
+              </div>
+              <div class="mp-char-row">
+                <button id="mp-p1-male" class="mp-char-btn mp-char-card active" onclick="chooseMpP1Character('male')">
+                  <img src="./assets/images/char-select-male.png" alt="Astronot Laki-laki">
+                  <span class="mp-char-label">Astronot Laki-laki</span>
+                </button>
+                <button id="mp-p1-female" class="mp-char-btn mp-char-card" onclick="chooseMpP1Character('female')">
+                  <img src="./assets/images/char-select-female.png" alt="Astronot Perempuan">
+                  <span class="mp-char-label">Astronot Perempuan</span>
+                </button>
+              </div>
+            </div>
+            <div class="mp-side">
+              <h3 class="mp-title alien">PLAYER 2 - ALIEN</h3>
+              <div class="input-group">
+                <label>NAMA PLAYER 2:</label>
+                <input type="text" id="mp-p2-name" placeholder="Nama Alien" maxlength="15">
+              </div>
+              <div class="input-group">
+                <label>ASAL PROVINSI:</label>
+                <select id="mp-p2-province">
+                  <option value="" disabled selected>-- Pilih Provinsi --</option>
+                </select>
+              </div>
+              <div class="mp-alien-picker">
+                <button id="mp-a1" class="mp-alien-card active" onclick="chooseMpP2Alien(0)"><img src="./assets/images/alien-1.png" alt="Alien 1"></button>
+                <button id="mp-a2" class="mp-alien-card" onclick="chooseMpP2Alien(1)"><img src="./assets/images/alien-2.png" alt="Alien 2"></button>
+                <button id="mp-a3" class="mp-alien-card" onclick="chooseMpP2Alien(2)"><img src="./assets/images/alien-3.png" alt="Alien 3"></button>
+              </div>
+            </div>
+          </div>
+          <div class="mp-actions">
+            <button class="start-btn" onclick="startMultiplayerGame()">MULAI PERTARUNGAN</button>
+            <button class="roadmap-btn leaderboard-btn" onclick="openMultiplayerLeaderboard()">LEADERBOARD MULTIPLAYER</button>
+          </div>
+         </div>
+
+         <!-- CHARACTER SELECTION SCREEN -->
+         <div id="char-select-menu">
+            <button class="back-btn" onclick="closeCharSelect()">KEMBALI</button>
+            <h2 class="text-4xl font-bold text-white mb-2 menu-heading">PILIH ANGGOTA RANGER</h2>
+            <p class="text-yellow-400 font-bold text-lg menu-subheading">Siapa yang akan memimpin misi ini?</p>
+            <div class="char-cards-wrapper">
+                <div class="char-card male" onclick="chooseCharacter('male')">
+                    <img src="./assets/images/char-select-male.png">
+                    <div class="label">RANGER BOY</div>
+                </div>
+                <div class="char-card female" onclick="chooseCharacter('female')">
+                    <img src="./assets/images/char-select-female.png">
+                    <div class="label">RANGER GIRL</div>
+                </div>
+            </div>
+         </div>
+
+         <!-- LEADERBOARD MENU -->
+        <div id="leaderboard-menu">
+          <h2 class="text-3xl font-bold text-yellow-400 mb-4 leaderboard-title">RANGER TERBAIK</h2>
+            <div id="leaderboard-list">
+                Loading data...
+            </div>
+          <button class="back-btn leaderboard-back-btn" onclick="closeLeaderboard()">KEMBALI</button>
+         </div>
+
+           <!-- MULTIPLAYER LEADERBOARD MENU -->
+           <div id="multiplayer-leaderboard-menu">
+            <h2 class="text-3xl font-bold text-yellow-400 mb-4 leaderboard-title">RANK MULTIPLAYER</h2>
+              <div id="multiplayer-leaderboard-list">
+                  Loading data...
+              </div>
+            <button class="back-btn leaderboard-back-btn" onclick="closeMultiplayerLeaderboard()">KEMBALI</button>
+           </div>
+       </div>
+
+       <!-- TOMBOL FULLSCREEN -->
+      <button id="music-toggle-btn" onclick="toggleMusic()" title="Matikan Musik">MUSIK ON</button>
+      <button id="fullscreen-btn" onclick="toggleFullScreen()" title="Layar Penuh">FS</button>
+   </div>
+  </div>
+
+  <script src="./app.js"></script>
+ </body>
+</html>
