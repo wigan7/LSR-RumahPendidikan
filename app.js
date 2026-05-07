@@ -385,6 +385,8 @@
       let nameInput = document.getElementById('player-name').value;
       if (!nameInput) { showInGameNotification("Mohon isi nama Ranger!"); return; }
       nameInput = filterProfanity(nameInput);
+      const difficultyValue = (document.getElementById('difficulty-select')?.value || 'sedang');
+      applyDifficulty(difficultyValue);
       playerData.name = nameInput;
       document.getElementById('main-menu').style.display = 'none';
       startGame();
@@ -401,6 +403,71 @@
       { name: "Uranus", color: "#4FD0E7", envType: "ice", artifactType: "diamond", infoFragments: [{ short: "Miring 98\u00B0", detail: "Planet ini berputar miring seperti bola yang menggelinding." }, { short: "Warna Biru", detail: "Gas Metana menyerap warna merah dan memantulkan warna biru kehijauan." }, { short: "Sangat Dingin", detail: "Suhu terdingin di atmosfer planet, bisa mencapai -224\u00B0C." }, { short: "Cincin Vertikal", detail: "Karena planetnya miring, cincinnya pun terlihat vertikal (berdiri tegak)." }, { short: "Inti Es", detail: "Punya mantel 'es' panas dari air, amonia, dan metana." }], quiz: [{ question: "Apa keunikan rotasi planet Uranus?", options: ["Sangat cepat", "Miring/Menggelinding", "Berhenti", "Zig-zag"], correct: 1 }, { question: "Gas apa yang membuat Uranus berwarna biru?", options: ["Oksigen", "Metana", "Helium", "Nitrogen"], correct: 1 }, { question: "Berapa suhu terdingin yang pernah dicatat?", options: ["-50\u00B0C", "-100\u00B0C", "-224\u00B0C", "0\u00B0C"], correct: 2 }, { question: "Bagaimana posisi cincin Uranus?", options: ["Horizontal", "Vertikal", "Tidak punya cincin", "Melengkung"], correct: 1 }, { question: "Apa isi mantel planet Uranus?", options: ["Batu cair", "Es panas (Air/Amonia)", "Gas kosong", "Logam"], correct: 1 }] },
       { name: "Neptunus", color: "#4169E1", envType: "wind", artifactType: "diamond", infoFragments: [{ short: "Planet ke-8", detail: "Planet terjauh dari Matahari yang kita kenal sekarang." }, { short: "Angin 2000 km/j", detail: "Pemegang rekor angin tercepat! Kecepatannya supersonik." }, { short: "165 Tahun", detail: "Butuh waktu 165 tahun Bumi untuk mengelilingi Matahari satu kali." }, { short: "Hujan Berlian", detail: "Tekanan kuat diduga memadatkan karbon menjadi hujan berlian!" }, { short: "Bintik Gelap", detail: "Punya badai besar bernama Bintik Gelap Besar." }], quiz: [{ question: "Neptunus adalah planet urutan ke berapa?", options: ["Ke-1", "Ke-5", "Ke-8", "Ke-9"], correct: 2 }, { question: "Apa rekor cuaca yang dipegang Neptunus?", options: ["Terpanas", "Angin Tercepat", "Paling Kering", "Paling Tenang"], correct: 1 }, { question: "Berapa lama 1 tahun di Neptunus?", options: ["10 tahun", "88 hari", "165 tahun Bumi", "1000 tahun"], correct: 2 }, { question: "Fenomena hujan apa yang diduga terjadi di sana?", options: ["Hujan Air", "Hujan Asam", "Hujan Berlian", "Hujan Emas"], correct: 2 }, { question: "Apa nama badai besar di Neptunus?", options: ["Bintik Merah", "Bintik Gelap Besar", "Topan Putih", "Mata Biru"], correct: 1 }] }
     ];
+
+    const difficultyConfigs = {
+      mudah: {
+        travelDuration: 22,
+        asteroidSpawnMult: 0.78,
+        asteroidSpeedMult: 0.85,
+        asteroidHpBonus: 0,
+        collisionDamage: 8,
+        oxygenDrainPerSec: 2.2,
+        oxygenHpTickDamage: 8,
+        obstacleCountMin: 8,
+        obstacleCountMax: 9,
+        oxygenTankCount: 4,
+        scanRequired: 68,
+        quizWrongDamage: 15
+      },
+      sedang: {
+        travelDuration: 20,
+        asteroidSpawnMult: 1,
+        asteroidSpeedMult: 1,
+        asteroidHpBonus: 0,
+        collisionDamage: 10,
+        oxygenDrainPerSec: 3,
+        oxygenHpTickDamage: 10,
+        obstacleCountMin: 10,
+        obstacleCountMax: 11,
+        oxygenTankCount: 3,
+        scanRequired: 80,
+        quizWrongDamage: 20
+      },
+      sulit: {
+        travelDuration: 18,
+        asteroidSpawnMult: 1.22,
+        asteroidSpeedMult: 1.2,
+        asteroidHpBonus: 1,
+        collisionDamage: 12,
+        oxygenDrainPerSec: 3.6,
+        oxygenHpTickDamage: 12,
+        obstacleCountMin: 12,
+        obstacleCountMax: 13,
+        oxygenTankCount: 2,
+        scanRequired: 92,
+        quizWrongDamage: 25
+      }
+    };
+
+    const planetScienceFacts = {
+      Merkurius: { temp: '-180°C sampai 430°C', size: 'Diameter 4.879 km (sekitar 38% Bumi)' },
+      Venus: { temp: 'Rata-rata 462°C', size: 'Diameter 12.104 km (sekitar 95% Bumi)' },
+      Bumi: { temp: 'Rata-rata 15°C', size: 'Diameter 12.742 km (patokan 100%)' },
+      Mars: { temp: 'Rata-rata -63°C', size: 'Diameter 6.779 km (sekitar 53% Bumi)' },
+      Jupiter: { temp: 'Sekitar -145°C', size: 'Diameter 139.820 km (sekitar 11 kali Bumi)' },
+      Saturnus: { temp: 'Sekitar -178°C', size: 'Diameter 116.460 km (sekitar 9 kali Bumi)' },
+      Uranus: { temp: 'Sekitar -224°C', size: 'Diameter 50.724 km (sekitar 4 kali Bumi)' },
+      Neptunus: { temp: 'Sekitar -214°C', size: 'Diameter 49.244 km (sekitar 4 kali Bumi)' }
+    };
+
+    let selectedDifficulty = 'sedang';
+    let gameBalance = { ...difficultyConfigs.sedang };
+
+    function applyDifficulty(level) {
+      const safeLevel = difficultyConfigs[level] ? level : 'sedang';
+      selectedDifficulty = safeLevel;
+      gameBalance = { ...difficultyConfigs[safeLevel] };
+    }
 
     // --- VARIABLES ---
     const GameState = { 
@@ -970,7 +1037,7 @@
         bullets=[]; asteroids=[]; particles=[]; floatingTexts=[]; 
         travelTime=0; asteroidKills=0; combo=0; maxCombo=0; comboTimer=0; phaseHitTaken=false; 
         shipHitFxTimer=0;
-        travelDuration=20; 
+        travelDuration=gameBalance.travelDuration; 
       initStars();
       SoundManager.playSpaceTravelTheme();
     }
@@ -988,6 +1055,7 @@
         activeObstacleHits = 0;
         scanTarget = null;
         scanProgress = 0;
+        scanRequired = gameBalance.scanRequired;
         isScanning = false;
         isScanButtonPressed = false;
         floatingTexts = [];
@@ -1046,7 +1114,7 @@
           return true;
         }
 
-        const obstacleCount = 10 + Math.floor(Math.random() * 2); // +2 sampai +3 asteroid
+        const obstacleCount = gameBalance.obstacleCountMin + Math.floor(Math.random() * ((gameBalance.obstacleCountMax - gameBalance.obstacleCountMin) + 1));
         let obstacleTries = 0;
         while (obstacles.length < obstacleCount && obstacleTries < 1200) {
           obstacleTries++;
@@ -1064,7 +1132,7 @@
           });
         }
 
-        const oxygenCount = 3;
+        const oxygenCount = gameBalance.oxygenTankCount;
         let oxygenTries = 0;
         while (oxygenTanks.length < oxygenCount && oxygenTries < 800) {
           oxygenTries++;
@@ -1213,11 +1281,12 @@
         SoundManager.play('shoot'); autoShootTimer=0; 
       }
       if(touchX!==null && isTouching) { let diff = touchX - ship.width/2 - ship.x; let speed = ship.speed * dt; if(Math.abs(diff)>speed) ship.x += (diff>0 ? speed : -speed); else ship.x = touchX - ship.width/2; ship.x = Math.max(0, Math.min(canvas.width-ship.width, ship.x)); }
-      if(Math.random() < (0.03 + (currentPlanetIndex*0.005)) * 60 * dt) { let maxHP = Math.min(5, 2+Math.floor(currentPlanetIndex/1.5)); let hp = Math.random() < 0.2+(currentPlanetIndex*0.1) ? Math.floor(Math.random()*maxHP)+1 : 1; let size = 30 + (hp*12); let speed = (120 + Math.random() * 120); if (hp > 2) speed *= 0.6; asteroids.push({x:Math.random()*(canvas.width-size), y:-size, w:size, h:size, s:speed, r:0, rs:(Math.random()-0.5)*6*dt, hp:hp, maxHp:hp, hitTimer:0, grazed:false, img: Math.random()>0.5 ? 'asteroid1':'asteroid2'}); }
+      const asteroidSpawnChance = (0.03 + (currentPlanetIndex * 0.005)) * gameBalance.asteroidSpawnMult;
+      if(Math.random() < asteroidSpawnChance * 60 * dt) { let maxHP = Math.min(6, 2+Math.floor(currentPlanetIndex/1.5)+gameBalance.asteroidHpBonus); let hp = Math.random() < 0.2+(currentPlanetIndex*0.1) ? Math.floor(Math.random()*maxHP)+1 : 1; let size = 30 + (hp*12); let speed = (120 + Math.random() * 120) * gameBalance.asteroidSpeedMult; if (hp > 2) speed *= 0.6; asteroids.push({x:Math.random()*(canvas.width-size), y:-size, w:size, h:size, s:speed, r:0, rs:(Math.random()-0.5)*6*dt, hp:hp, maxHp:hp, hitTimer:0, grazed:false, img: Math.random()>0.5 ? 'asteroid1':'asteroid2'}); }
       bullets = bullets.filter(b => { b.y-=b.s*dt; if (b.angle) b.x += Math.sin(b.angle) * b.s * dt; return b.y>0; });
       asteroids = asteroids.filter(a => {
         a.y+=a.s*dt; a.r+=a.rs; if(a.hitTimer>0) a.hitTimer--;
-        if(a.x < ship.x+ship.width && a.x+a.w > ship.x && a.y < ship.y+ship.height && a.y+a.h > ship.y) { playerHP-=10; phaseHitTaken=true; shipHitFxTimer = 0.45; if(combo>1) showFloatingText("COMBO HILANG!", ship.x, ship.y-50, '#F00'); showFloatingText("KENA ASTEROID!", ship.x + (ship.width/2), ship.y - 10, '#FFA500'); combo=0; SoundManager.play('hit'); for(let i=0; i<22; i++) particles.push({x:ship.x+ship.width/2, y:ship.y+(ship.height*0.45), vx:(Math.random()-0.5)*620, vy:(Math.random()-0.3)*620, life:7 + (Math.random()*2), decay: 14, c: (i % 3 === 0 ? '#FF4500' : (i % 2 === 0 ? '#FFD166' : '#FFA500'))}); if(playerHP<=0) { gameState=GameState.GAME_OVER; SoundManager.stopBGM(); } return false; }
+        if(a.x < ship.x+ship.width && a.x+a.w > ship.x && a.y < ship.y+ship.height && a.y+a.h > ship.y) { playerHP-=gameBalance.collisionDamage; phaseHitTaken=true; shipHitFxTimer = 0.45; if(combo>1) showFloatingText("COMBO HILANG!", ship.x, ship.y-50, '#F00'); showFloatingText("KENA ASTEROID!", ship.x + (ship.width/2), ship.y - 10, '#FFA500'); combo=0; SoundManager.play('hit'); for(let i=0; i<22; i++) particles.push({x:ship.x+ship.width/2, y:ship.y+(ship.height*0.45), vx:(Math.random()-0.5)*620, vy:(Math.random()-0.3)*620, life:7 + (Math.random()*2), decay: 14, c: (i % 3 === 0 ? '#FF4500' : (i % 2 === 0 ? '#FFD166' : '#FFA500'))}); if(playerHP<=0) { gameState=GameState.GAME_OVER; SoundManager.stopBGM(); } return false; }
         let cx=a.x+a.w/2, cy=a.y+a.h/2, sx=ship.x+ship.width/2, sy=ship.y+ship.height/2; let dist = Math.sqrt(Math.pow(cx-sx,2)+Math.pow(cy-sy,2)); if(!a.grazed && dist < (a.w/2+ship.width/2)+30 && dist > (a.w/2+ship.width/2)) { a.grazed=true; score+=20; showFloatingText("NYARIS!", ship.x+40, ship.y, '#0FF'); }
         for(let i=bullets.length-1; i>=0; i--) { let b = bullets[i]; if(b.x < a.x+a.w && b.x+b.w > a.x && b.y < a.y+a.h && b.y+b.h > a.y) { bullets.splice(i,1); a.hp--; a.hitTimer=5; for(let p=0; p<3; p++) particles.push({x:b.x, y:b.y, vx:(Math.random()-0.5)*240, vy:(Math.random()-0.5)*240, life:0.3, c:'#FFF'}); if(a.hp<=0) { asteroidKills++; stats.asteroidsDestroyed++; combo++; comboTimer=2.0; let mult = 1+(combo*0.05); let base = a.maxHp>1 ? 30 : 10; let fs=Math.floor(base*mult); score+=fs; showFloatingText(`+${fs}`+(combo>1?` x${mult.toFixed(1)}`:''), a.x, a.y, '#FF0'); SoundManager.play('explosion'); for(let p=0; p<10+(a.maxHp*2); p++) particles.push({x:cx, y:cy, vx:(Math.random()-0.5)*480, vy:(Math.random()-0.5)*480, life:0.8, c:'#DAA520'}); return false; } return true; } } return a.y < canvas.height+50;
       });
@@ -1228,12 +1297,12 @@
       if (explorationPhase === 'complete' || isPaused) return;
 
       const planet = planets[currentPlanetIndex];
-      currentOxygen -= 3 * dt;
+      currentOxygen -= gameBalance.oxygenDrainPerSec * dt;
       if (currentOxygen <= 0) {
         currentOxygen = 0;
         oxygenHpDrainTickTimer += dt;
         while (oxygenHpDrainTickTimer >= 1) {
-          playerHP -= 10;
+          playerHP -= gameBalance.oxygenHpTickDamage;
           oxygenHpDrainTickTimer -= 1;
         }
         if (playerHP <= 0) {
@@ -1389,7 +1458,7 @@
         setTimeout(() => battleEffects.push({type:'explosion', x:660, y:180, r:0, mr:60, t:20}), 200);
         setTimeout(() => { alienAnim.state = 'dying'; alienAnim.y = 0; alienAnim.alpha = 1.0; alienAnim.timer = 40; SoundManager.play('explosion'); }, 500);
       } else {
-        battleMessage = "SALAH! KENA TEMBAK!"; playerHP -= 20; battleMistakes++; SoundManager.play('wrong'); SoundManager.play('hit');
+        battleMessage = "SALAH! KENA TEMBAK!"; playerHP -= gameBalance.quizWrongDamage; battleMistakes++; SoundManager.play('wrong'); SoundManager.play('hit');
         battleEffects.push({type:'laser', sx: 610, sy: 180, ex: 140, ey: 180, t: 20, c: aLaserColor });
         setTimeout(() => { if(playerHP <= 0) { gameState = GameState.GAME_OVER; SoundManager.stopBGM(); } else { selectedOption = -1; showQuestion = true; quizStartTime = Date.now(); } }, 1500);
       }
@@ -1446,7 +1515,77 @@
 
     function drawStart() { if (images.startBg.complete && images.startBg.naturalWidth !== 0) ctx.drawImage(images.startBg, 0, 0, canvas.width, canvas.height); else { ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height); } const pulse = Math.abs(Math.sin(Date.now() / 500)); ctx.globalAlpha = 0.5 + (pulse * 0.5); ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.beginPath(); ctx.roundRect(canvas.width/2 - 300, canvas.height - 150, 600, 60, 30); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center'; ctx.fillText("TAP DIMANA SAJA UNTUK MEMULAI PERMAINAN", canvas.width/2, canvas.height - 110); ctx.globalAlpha = 1.0; }
     function drawSpaceTravel() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const shipBob = Math.sin(Date.now()/200)*3; let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, ship.x, ship.y, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(ship.x, ship.y, ship.width, ship.height); } bullets.forEach(b => { ctx.shadowBlur=10; ctx.shadowColor='#0FF'; ctx.fillStyle='#0FF'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.shadowBlur=0; }); asteroids.forEach(a => { ctx.save(); ctx.translate(a.x+a.w/2, a.y+a.h/2); ctx.rotate(a.r); const astImg = (a.img === 'asteroid1') ? images.asteroid1 : images.asteroid2; if (astImg && astImg.complete && astImg.naturalWidth !== 0) { if (a.hitTimer > 0) { ctx.globalAlpha = 0.7; ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(-a.w/2, -a.h/2, a.w, a.h); ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = 'source-over'; } else { ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); } } else { ctx.fillStyle = a.hitTimer>0 ? '#FFF' : '#5C4033'; ctx.beginPath(); ctx.arc(0,0, a.w/2, 0, 6.28); ctx.fill(); ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(-a.w*0.2, -a.h*0.2, a.w*0.15, 0, 6.28); ctx.fill(); } ctx.restore(); }); particles.forEach(p => { ctx.fillStyle = p.c; ctx.globalAlpha = p.life/20; ctx.beginPath(); ctx.arc(p.x, p.y, 2+Math.random()*2, 0, 6.28); ctx.fill(); ctx.globalAlpha=1.0; }); floatingTexts.forEach(t => { ctx.fillStyle = t.color; ctx.globalAlpha = t.life/60; ctx.font = 'bold 20px Arial'; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); ctx.globalAlpha=1.0; }); if (planets[currentPlanetIndex].envType === 'heat') { ctx.fillStyle = `rgba(255, 50, 0, ${0.1 + Math.sin(Date.now()/500)*0.1})`; ctx.fillRect(0,0,canvas.width, canvas.height); } if (planets[currentPlanetIndex].envType === 'ice') { const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 300, canvas.width/2, canvas.height/2, 600); grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(1, 'rgba(200,240,255,0.4)'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); } drawHUD(); ctx.fillStyle='#FFF'; ctx.textAlign='left'; ctx.font='20px Arial'; ctx.fillText(`Tujuan: ${planets[currentPlanetIndex].name}`, 20, 90); if (combo>1) { ctx.fillStyle='#FFD700'; ctx.font='bold 24px Arial'; ctx.fillText(`COMBO x${combo}`, 20, 150); } }
-    function drawApproachingPlanet() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const p = planets[currentPlanetIndex]; ctx.fillStyle = p.color; const progress = 1 - (approachTimer / 10); const planetX = (canvas.width + 400) - (progress * 600); ctx.beginPath(); ctx.arc(planetX, canvas.height/2, 400, 0, 6.28); ctx.fill(); let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; const shipX = -100 + (progress * (canvas.width/2 + 100)); ctx.save(); ctx.translate(shipX, canvas.height/2); ctx.rotate(Math.PI/2); if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, -ship.width/2, -ship.height/2, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(-ship.width/2, -ship.height/2, ship.width, ship.height); } ctx.restore(); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center'; ctx.shadowColor = '#000'; ctx.shadowBlur = 5; ctx.fillText(`Mendekati Planet ${p.name}...`, canvas.width/2, canvas.height/2 - 20); ctx.fillStyle = '#FFF'; ctx.font = '18px Arial'; ctx.fillText(`Mendarat dalam ${Math.ceil(approachTimer)}...`, canvas.width/2, canvas.height/2 + 30); ctx.shadowBlur = 0; drawHUD(); }
+    function drawApproachingPlanet() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(s => {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, 6.28);
+        ctx.fill();
+      });
+
+      const p = planets[currentPlanetIndex];
+      const science = planetScienceFacts[p.name] || { temp: 'Data suhu belum tersedia', size: 'Data ukuran belum tersedia' };
+      const progress = 1 - (approachTimer / 10);
+      const planetX = (canvas.width + 400) - (progress * 600);
+
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(planetX, canvas.height / 2, 400, 0, 6.28);
+      ctx.fill();
+
+      let sImg = images.ship0;
+      if (shipLevel === 1) sImg = images.ship1;
+      if (shipLevel === 2) sImg = images.ship2;
+      if (shipLevel === 3) sImg = images.ship3;
+
+      const shipX = -100 + (progress * (canvas.width / 2 + 100));
+      ctx.save();
+      ctx.translate(shipX, canvas.height / 2);
+      ctx.rotate(Math.PI / 2);
+      if (sImg && sImg.complete && sImg.naturalWidth !== 0) {
+        ctx.drawImage(sImg, -ship.width / 2, -ship.height / 2, ship.width, ship.height);
+      } else {
+        ctx.fillStyle = '#4A90E2';
+        ctx.fillRect(-ship.width / 2, -ship.height / 2, ship.width, ship.height);
+      }
+      ctx.restore();
+
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 5;
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 28px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Mendekati Planet ${p.name}...`, canvas.width / 2, canvas.height / 2 - 80);
+      ctx.fillStyle = '#FFF';
+      ctx.font = '18px Arial';
+      ctx.fillText(`Mendarat dalam ${Math.ceil(approachTimer)}...`, canvas.width / 2, canvas.height / 2 - 40);
+
+      const panelW = 470;
+      const panelH = 108;
+      const panelX = (canvas.width - panelW) / 2;
+      const panelY = canvas.height / 2 + 10;
+      ctx.fillStyle = 'rgba(10, 20, 40, 0.78)';
+      ctx.beginPath();
+      ctx.roundRect(panelX, panelY, panelW, panelH, 14);
+      ctx.fill();
+      ctx.strokeStyle = '#00BFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#7FDFFF';
+      ctx.font = 'bold 18px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText('FAKTA CEPAT PLANET', panelX + 18, panelY + 28);
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 17px Arial';
+      ctx.fillText(`Suhu: ${science.temp}`, panelX + 18, panelY + 58);
+      ctx.fillText(`Ukuran: ${science.size}`, panelX + 18, panelY + 86);
+
+      ctx.shadowBlur = 0;
+      drawHUD();
+    }
     function drawLeavingPlanet() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const p = planets[currentPlanetIndex]; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height + 300, 400, 0, 6.28); ctx.fill(); let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; ctx.save(); ctx.translate(canvas.width/2, leavingShipY); if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, -ship.width/2, -ship.height/2, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(-ship.width/2, -ship.height/2, ship.width, ship.height); } ctx.restore(); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center'; ctx.fillText(`Meninggalkan Planet ${p.name}...`, canvas.width/2, 100); drawHUD(); }
     function drawRoadmap() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const startX = 100, endX = canvas.width - 100, y = canvas.height / 2; ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.setLineDash([10, 10]); ctx.beginPath(); ctx.moveTo(startX, y); ctx.lineTo(endX, y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(startX - 50, y, 40, 0, 6.28); ctx.fill(); planets.forEach((p, i) => { const px = startX + (i * ((endX - startX) / (planets.length - 1))); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(px, y, 15 + (i*2), 0, 6.28); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText(p.name, px, y + 40); if (i === currentPlanetIndex) { ctx.strokeStyle = '#0F0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, y, 25 + (i*2), 0, 6.28); ctx.stroke(); } }); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4; ctx.fillText("PETA GALAKSI BIMASAKTI", canvas.width/2, 60); ctx.shadowBlur = 0; ctx.fillStyle = '#333'; ctx.fillRect(20, 20, 130, 50); ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, 130, 50); ctx.fillStyle = '#FFF'; ctx.font = 'bold 18px Arial'; ctx.fillText("KEMBALI", 85, 52); }
     function drawExploration() { const planet = planets[currentPlanetIndex]; const grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, planet.color); grad.addColorStop(1, '#000'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); envParticles.forEach(p => { if(planet.envType==='dust') ctx.fillStyle='rgba(200,100,50,0.5)'; else if(planet.envType==='heat') ctx.fillStyle='rgba(255,200,100,0.2)'; else ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 6.28); ctx.fill(); }); if(planet.envType==='heat') { ctx.fillStyle = `rgba(255,0,0,${0.1+Math.sin(Date.now()/500)*0.05})`; ctx.fillRect(0,0,canvas.width,canvas.height); } obstacles.forEach(o => { o.rot += (o.rs || 0); ctx.save(); ctx.translate(o.x + o.w/2, o.y + o.h/2); ctx.rotate(o.rot); const obstacleImg = images[o.img]; if (obstacleImg && obstacleImg.complete && obstacleImg.naturalWidth !== 0) { ctx.drawImage(obstacleImg, -o.w/2, -o.h/2, o.w, o.h); } else { ctx.fillStyle='#5C4033'; ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h); ctx.fillStyle='#3E2723'; ctx.beginPath(); ctx.arc(5,5,10,0,6.28); ctx.fill(); } ctx.restore(); }); oxygenTanks.forEach(t => { const f = Math.sin(Date.now()/300)*3; ctx.fillStyle = '#00BFFF'; ctx.beginPath(); ctx.roundRect(t.x-8, t.y-12+f, 16, 24, 4); ctx.fill(); ctx.fillStyle = '#E0F7FA'; ctx.fillRect(t.x-4, t.y-10+f, 4, 20); ctx.fillStyle = '#888'; ctx.fillRect(t.x-6, t.y-16+f, 12, 4); }); infoFragments.forEach(f => { if(!f.collected) { const p = Math.sin(f.pulse)*5; ctx.shadowBlur=15; ctx.shadowColor='#FFD700'; ctx.fillStyle='rgba(255,215,0,0.3)'; ctx.beginPath(); ctx.arc(f.x, f.y, 25+p, 0, 6.28); ctx.fill(); ctx.shadowBlur=0; ctx.fillStyle='#FFF'; ctx.beginPath(); ctx.arc(f.x, f.y, 10, 0, 6.28); ctx.fill(); } }); ctx.save(); ctx.translate(astronaut.x, astronaut.y); if(planet.envType==='wind') ctx.rotate(0.1); const charImg = (playerData.gender === 'male') ? images.exploreMale : images.exploreFemale; if (charImg.complete && charImg.naturalWidth !== 0) { ctx.drawImage(charImg, -astronaut.width/2, -astronaut.height/2, astronaut.width, astronaut.height); } else { ctx.fillStyle='#FFF'; ctx.fillRect(-15,-30,30,60); } if (isScanning && scanTarget) { ctx.strokeStyle = '#0F0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 40, -Math.PI/2, (-Math.PI/2) + (Math.PI*2 * (scanProgress/scanRequired))); ctx.stroke(); } ctx.restore(); if (currentPlanetIndex >= 4) { const gradient = ctx.createRadialGradient(astronaut.x, astronaut.y, 50, astronaut.x, astronaut.y, 250); gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(1, 'rgba(0,0,0,0.95)'); ctx.fillStyle = gradient; ctx.fillRect(0,0,canvas.width, canvas.height); } drawHUD(); ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.font='bold 20px Arial'; ctx.fillText(`Artefak: ${collectedFragments}/${totalFragments}`, canvas.width/2, 30); const oxygenPanelW = 150, oxygenPanelH = 22; const oxygenPanelX = canvas.width - oxygenPanelW - 150; const oxygenPanelY = 30; ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.roundRect(oxygenPanelX, oxygenPanelY, oxygenPanelW, oxygenPanelH, 5); ctx.fill(); const ow = (currentOxygen/100)*(oxygenPanelW-6); ctx.fillStyle = currentOxygen>20 ? '#00BFFF':'#F00'; ctx.beginPath(); ctx.roundRect(oxygenPanelX+3, oxygenPanelY+3, ow, oxygenPanelH-6, 3); ctx.fill(); ctx.fillStyle='#FFF'; ctx.font='bold 13px Arial'; ctx.textAlign='right'; ctx.fillText("OKSIGEN", oxygenPanelX-8, oxygenPanelY+16); if (scanTarget && !scanTarget.collected) { const btnX = astronaut.x; const btnY = astronaut.y - 80; const r = 40; ctx.beginPath(); ctx.moveTo(btnX, btnY); ctx.lineTo(scanTarget.x, scanTarget.y); ctx.strokeStyle = 'rgba(50,205,50,0.5)'; ctx.lineWidth=2; ctx.stroke(); ctx.beginPath(); ctx.arc(btnX, btnY, r, 0, 6.28); ctx.fillStyle = isScanButtonPressed ? '#32CD32' : 'rgba(0,255,0,0.6)'; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.stroke(); ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.font='bold 12px Arial'; ctx.fillText("TAHAN", btnX, btnY-5); ctx.fillText("SCAN", btnX, btnY+15); } if(collectedFragments > 0) { const startX = 20; const boxWidth = 260; const maxWidth = 240; const lineHeight = 16; let linesToDraw = []; ctx.font = '12px Arial'; infoFragments.forEach(f => { if(f.collected) { const words = f.data.short.split(' '); let line = '> '; for(let n = 0; n < words.length; n++) { const testLine = line + words[n] + ' '; const metrics = ctx.measureText(testLine); if (metrics.width > maxWidth && n > 0) { linesToDraw.push(line); line = '  ' + words[n] + ' '; } else { line = testLine; } } linesToDraw.push(line); linesToDraw.push(''); } }); const boxHeight = Math.min((linesToDraw.length * lineHeight) + 40, canvas.height - 150); ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.roundRect(10, 100, boxWidth, boxHeight, 10); ctx.fill(); ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle='#FFD700'; ctx.textAlign='left'; ctx.font='bold 14px Arial'; ctx.fillText("FAKTA DITEMUKAN:", 20, 125); ctx.fillStyle='#FFF'; ctx.font='12px Arial'; let yp = 150; for (let i = 0; i < linesToDraw.length; i++) { if (yp < 100 + boxHeight - 10) { ctx.fillText(linesToDraw[i], startX, yp); yp += lineHeight; } } } floatingTexts.forEach(t => { ctx.fillStyle = t.color; ctx.globalAlpha = t.life/60; ctx.font = 'bold 20px Arial'; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); ctx.globalAlpha=1.0; }); }

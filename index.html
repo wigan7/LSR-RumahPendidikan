@@ -24,6 +24,14 @@
                    <label>NAMA RANGER:</label>
                    <input type="text" id="player-name" placeholder="Ketik namamu..." maxlength="15">
                  </div>
+                 <div class="input-group">
+                   <label>TINGKAT KESULITAN:</label>
+                   <select id="difficulty-select">
+                     <option value="mudah">Mudah</option>
+                     <option value="sedang" selected>Sedang</option>
+                     <option value="sulit">Sulit</option>
+                   </select>
+                 </div>
                  <button class="start-btn mt-2" onclick="submitMainMenu()">MULAI MISI</button>
                  <button class="roadmap-btn mp-mode-btn" onclick="openMultiplayerMenu()">MODE MULTIPLAYER</button>
                  <button class="roadmap-btn" onclick="showMenuRoadmap()">PETA MISI</button>
