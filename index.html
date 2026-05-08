@@ -35,6 +35,7 @@
                  <button class="start-btn mt-2" onclick="submitMainMenu()">MULAI MISI</button>
                  <button class="roadmap-btn mp-mode-btn" onclick="openMultiplayerMenu()">MODE MULTIPLAYER</button>
                  <button class="roadmap-btn" onclick="showMenuRoadmap()">PETA MISI</button>
+                 <button class="roadmap-btn minigame-mode-btn" onclick="openMinigameTestMenu()">MODE MINIGAME (TEST)</button>
              </div>
              
              <div class="menu-right">
@@ -43,6 +44,19 @@
                     <img id="current-char-img" src="./assets/images/char-select-male.png">
                  </div>
                  <button class="change-btn" onclick="openCharSelect()">Ganti</button>
+             </div>
+
+             <div id="minigame-test-menu" class="minigame-test-menu">
+               <h3>MODE MINIGAME TEST</h3>
+               <p>Pilih planet tujuan untuk menguji variasi minigame.</p>
+               <div class="input-group">
+                 <label>PLANET UJI:</label>
+                 <select id="test-planet-select"></select>
+               </div>
+               <div class="minigame-test-actions">
+                 <button class="roadmap-btn" onclick="closeMinigameTestMenu()">Batal</button>
+                 <button class="start-btn" onclick="startMinigameTestMode()">Mulai Test</button>
+               </div>
              </div>
            </div>
          </div>

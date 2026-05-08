@@ -206,6 +206,61 @@
       background: linear-gradient(to bottom, #8a2be2, #4b0082);
     }
 
+    .minigame-mode-btn {
+      background: linear-gradient(to bottom, #ff8c00, #c65f00);
+    }
+
+    .minigame-test-menu {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.78);
+      border-radius: 20px;
+      z-index: 3;
+      padding: 26px;
+      text-align: center;
+    }
+
+    .minigame-test-menu h3 {
+      margin: 0;
+      color: #FFD700;
+      font-size: 28px;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .minigame-test-menu p {
+      margin: 0;
+      color: #E9F4FF;
+      font-size: 16px;
+      max-width: 520px;
+    }
+
+    .minigame-test-menu .input-group {
+      width: min(460px, 90%);
+      margin-top: 8px;
+      text-align: left;
+    }
+
+    .minigame-test-actions {
+      width: min(460px, 90%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .minigame-test-actions .start-btn,
+    .minigame-test-actions .roadmap-btn {
+      margin-top: 0;
+      width: 100%;
+      font-size: 18px;
+      padding: 10px 14px;
+    }
+
     .multiplayer-panel {
       width: 94%;
       max-width: 1050px;

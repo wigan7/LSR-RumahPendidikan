@@ -534,6 +534,56 @@
       startGame();
     }
 
+    function openMinigameTestMenu() {
+      SoundManager.play('click');
+      const panel = document.getElementById('minigame-test-menu');
+      const select = document.getElementById('test-planet-select');
+      if (!panel || !select) return;
+
+      if (select.options.length === 0) {
+        planets.forEach((planet, index) => {
+          const option = document.createElement('option');
+          option.value = String(index);
+          option.textContent = `${index + 1}. ${planet.name}`;
+          select.appendChild(option);
+        });
+      }
+
+      const defaultIndex = Math.max(0, Math.min(planets.length - 1, currentPlanetIndex || 0));
+      select.value = String(defaultIndex);
+      panel.style.display = 'flex';
+    }
+
+    function closeMinigameTestMenu() {
+      SoundManager.play('click');
+      const panel = document.getElementById('minigame-test-menu');
+      if (panel) panel.style.display = 'none';
+    }
+
+    function startMinigameTestMode() {
+      SoundManager.play('click');
+      SoundManager.resume();
+      let nameInput = document.getElementById('player-name').value || 'Tester';
+      nameInput = filterProfanity(nameInput);
+      const difficultyValue = (document.getElementById('difficulty-select')?.value || 'sedang');
+      const selectedPlanet = parseInt(document.getElementById('test-planet-select')?.value || '0', 10);
+      const safePlanetIndex = Number.isFinite(selectedPlanet)
+        ? Math.max(0, Math.min(planets.length - 1, selectedPlanet))
+        : 0;
+      applyDifficulty(difficultyValue);
+      playerData.name = nameInput;
+      const panel = document.getElementById('minigame-test-menu');
+      if (panel) panel.style.display = 'none';
+      document.getElementById('main-menu').style.display = 'none';
+      currentPlanetIndex = safePlanetIndex;
+      playerHP = 100;
+      score = 0;
+      isPaused = false;
+      gameState = GameState.EXPLORATION;
+      initExploration();
+      showInGameNotification(`Mode Minigame aktif di planet ${planets[safePlanetIndex].name}.`);
+    }
+
     // --- GAME DATA PLANET & QUIZ BANK ---
     const planets = [
       { name: "Merkurius", color: "#8C7853", envType: "heat", artifactType: "rock", infoFragments: [{ short: "Orbit 88 hari", detail: "Merkurius adalah pelari cepat! Ia mengelilingi Matahari hanya dalam 88 hari Bumi." }, { short: "Suhu Ekstrim", detail: "Siang hari panas memanggang hingga 430\u00B0C, tapi malam hari beku hingga -180\u00B0C." }, { short: "Tanpa Atmosfer", detail: "Langit Merkurius selalu hitam karena tidak ada atmosfer untuk menyebarkan cahaya." }, { short: "Penuh Kawah", detail: "Permukaannya bopeng mirip Bulan karena banyak meteor menabraknya." }, { short: "1 Hari > 1 Tahun", detail: "Satu hari di sana butuh 176 hari Bumi, padahal setahunnya cuma 88 hari!" }], quiz: [{ question: "Berapa lama waktu revolusi (setahun) di Merkurius?", options: ["88 hari Bumi", "365 hari Bumi", "24 jam", "12 tahun"], correct: 0 }, { question: "Kenapa suhu siang hari di Merkurius sangat panas?", options: ["Ada banyak api", "Sangat dekat Matahari", "Banyak gesekan", "Intinya magma"], correct: 1 }, { question: "Apa warna langit di Merkurius saat siang hari?", options: ["Biru cerah", "Hitam gelap", "Merah membara", "Putih silau"], correct: 1 }, { question: "Mengapa permukaan Merkurius penuh kawah?", options: ["Bekas tambang alien", "Letusan gunung api", "Hantaman meteor", "Erosi air"], correct: 2 }, { question: "Mana yang lebih lama di Merkurius?", options: ["1 Hari (Rotasi)", "1 Tahun (Revolusi)", "Sama saja", "Tidak tahu"], correct: 0 }] },
@@ -545,6 +595,31 @@
       { name: "Uranus", color: "#4FD0E7", envType: "ice", artifactType: "diamond", infoFragments: [{ short: "Miring 98\u00B0", detail: "Planet ini berputar miring seperti bola yang menggelinding." }, { short: "Warna Biru", detail: "Gas Metana menyerap warna merah dan memantulkan warna biru kehijauan." }, { short: "Sangat Dingin", detail: "Suhu terdingin di atmosfer planet, bisa mencapai -224\u00B0C." }, { short: "Cincin Vertikal", detail: "Karena planetnya miring, cincinnya pun terlihat vertikal (berdiri tegak)." }, { short: "Inti Es", detail: "Punya mantel 'es' panas dari air, amonia, dan metana." }], quiz: [{ question: "Apa keunikan rotasi planet Uranus?", options: ["Sangat cepat", "Miring/Menggelinding", "Berhenti", "Zig-zag"], correct: 1 }, { question: "Gas apa yang membuat Uranus berwarna biru?", options: ["Oksigen", "Metana", "Helium", "Nitrogen"], correct: 1 }, { question: "Berapa suhu terdingin yang pernah dicatat?", options: ["-50\u00B0C", "-100\u00B0C", "-224\u00B0C", "0\u00B0C"], correct: 2 }, { question: "Bagaimana posisi cincin Uranus?", options: ["Horizontal", "Vertikal", "Tidak punya cincin", "Melengkung"], correct: 1 }, { question: "Apa isi mantel planet Uranus?", options: ["Batu cair", "Es panas (Air/Amonia)", "Gas kosong", "Logam"], correct: 1 }] },
       { name: "Neptunus", color: "#4169E1", envType: "wind", artifactType: "diamond", infoFragments: [{ short: "Planet ke-8", detail: "Planet terjauh dari Matahari yang kita kenal sekarang." }, { short: "Angin 2000 km/j", detail: "Pemegang rekor angin tercepat! Kecepatannya supersonik." }, { short: "165 Tahun", detail: "Butuh waktu 165 tahun Bumi untuk mengelilingi Matahari satu kali." }, { short: "Hujan Berlian", detail: "Tekanan kuat diduga memadatkan karbon menjadi hujan berlian!" }, { short: "Bintik Gelap", detail: "Punya badai besar bernama Bintik Gelap Besar." }], quiz: [{ question: "Neptunus adalah planet urutan ke berapa?", options: ["Ke-1", "Ke-5", "Ke-8", "Ke-9"], correct: 2 }, { question: "Apa rekor cuaca yang dipegang Neptunus?", options: ["Terpanas", "Angin Tercepat", "Paling Kering", "Paling Tenang"], correct: 1 }, { question: "Berapa lama 1 tahun di Neptunus?", options: ["10 tahun", "88 hari", "165 tahun Bumi", "1000 tahun"], correct: 2 }, { question: "Fenomena hujan apa yang diduga terjadi di sana?", options: ["Hujan Air", "Hujan Asam", "Hujan Berlian", "Hujan Emas"], correct: 2 }, { question: "Apa nama badai besar di Neptunus?", options: ["Bintik Merah", "Bintik Gelap Besar", "Topan Putih", "Mata Biru"], correct: 1 }] }
     ];
+
+    const planetMinigameProgression = [
+      ['excavation', 'signal', 'generator'],
+      ['excavation', 'drill', 'spectrometer'],
+      ['signal', 'drill', 'microscope'],
+      ['generator', 'signal', 'sensorCircuit'],
+      ['drill', 'sensorCircuit', 'reactor'],
+      ['spectrometer', 'excavation', 'reactor'],
+      ['microscope', 'sensorCircuit', 'reactor'],
+      ['generator', 'drill', 'reactor']
+    ];
+
+    function getPlanetMinigameTypes(planetIndex) {
+      const safeIndex = Math.max(0, Math.min(planets.length - 1, planetIndex));
+      return planetMinigameProgression[safeIndex] || planetMinigameProgression[0];
+    }
+
+    function getFragmentMinigameSequence(planetIndex, fragmentCount) {
+      const availableTypes = getPlanetMinigameTypes(planetIndex);
+      const sequence = [];
+      for (let i = 0; i < fragmentCount; i++) {
+        sequence.push(availableTypes[i % availableTypes.length]);
+      }
+      return sequence;
+    }
 
     const difficultyConfigs = {
       mudah: {
@@ -816,7 +891,7 @@
     // --- VARIABLES ---
     const GameState = { 
       START:'start', MENU:'menu', ROADMAP:'roadmap', SPACE_TRAVEL:'space_travel', APPROACHING_PLANET: 'approaching_planet', UPGRADE_SCREEN: 'upgrade_screen', LEAVING_PLANET: 'leaving_planet',
-      EXPLORATION:'exploration', EXCAVATION: 'excavation', SIGNAL:'signal', DRILLING:'drilling', 
+      EXPLORATION:'exploration', EXCAVATION:'excavation', SIGNAL:'signal', DRILLING:'drilling', GENERATOR:'generator', SPECTROMETER:'spectrometer', SENSOR_CIRCUIT:'sensor_circuit', MICROSCOPE:'microscope', REACTOR:'reactor', 
       ARTIFACT_INFO:'artifact_info', READING:'reading', BATTLE:'battle', GAME_OVER:'game_over', WIN:'win',
       MULTIPLAYER_BATTLE:'multiplayer_battle', MULTIPLAYER_RESULT:'multiplayer_result'
     };
@@ -849,16 +924,66 @@
     let scanProgress = 0;
     let scanRequired = 80;
     let isScanning = false;
+    let scanPromptShown = false;
+    let scanPromptFlash = 0;
+    let scanReleaseHintCooldown = 0;
     let activeObstacleHits = 0; 
 
     // MINIGAMES
     let artifactInfoTimer = 0;
     let activeFragment = null;
-    let excavationGrid = [], excavationCleared = 0;
+    let excavationGrid = [];
+    let excavationCleared = 0;
     let excavationTargetCleared = 350;
     let excavationBrushRadius = 30;
-    let signalTarget = 50, signalCurrent = 0, signalStability = 0;
-    let drillDepth = 0, drillHeat = 0, isDrilling = false;
+
+    let signalTarget = 50;
+    let signalCurrent = 0;
+    let signalStability = 0;
+
+    let drillDepth = 0;
+    let drillHeat = 0;
+    let isDrilling = false;
+
+    let generatorSwitches = [];
+    let generatorSwitchOrder = [];
+    let generatorInputOrder = [];
+
+    let activeSliderControl = null;
+
+    let spectrometerTarget = { wave: 50, gain: 50, focus: 50 };
+    let spectrometerCurrent = { wave: 30, gain: 30, focus: 30 };
+    let spectrometerTolerance = 6;
+    let spectrometerCalibratedSteps = 0;
+    let spectrometerRequiredSteps = 3;
+
+    let sensorCircuitNodes = [];
+    let sensorCircuitEdges = [];
+    let sensorCircuitRequiredEdges = [];
+    let sensorCircuitAllowedEdges = [];
+    let sensorCircuitSelectedNode = -1;
+    let sensorCircuitMode = 'activate';
+    let sensorCircuitSource = 0;
+    let sensorCircuitTarget = 5;
+    let sensorCircuitHintText = '';
+    let sensorCircuitEnergyUsed = 0;
+    let sensorCircuitEnergyBudget = 6;
+
+    let microscopeLens = { x: 480, y: 280, radius: 74 };
+    let microscopeMarker = { x: 500, y: 280 };
+    let microscopeFocusTarget = 52;
+    let microscopeFocusCurrent = 20;
+    let microscopeHintPulse = 0;
+    let microscopeTolerance = 5;
+
+    let reactorValues = { temp: 35, pressure: 65, flow: 45 };
+    let reactorStableSteps = 0;
+    let reactorRequiredStableSteps = 3;
+    let reactorSafeZones = {
+      temp: { min: 44, max: 56 },
+      pressure: { min: 47, max: 61 },
+      flow: { min: 38, max: 52 }
+    };
 
     // Reading
     let readingTimer = 60;
@@ -1449,9 +1574,22 @@
       }
       
       else if (gameState === GameState.EXPLORATION) {
-        if (scanTarget) { const btnX = astronaut.x; const btnY = astronaut.y - 80; const dist = Math.sqrt(Math.pow(pos.x - btnX, 2) + Math.pow(pos.y - btnY, 2)); if (dist < 50) { isScanButtonPressed = true; SoundManager.play('scan'); return; } } isScanButtonPressed = false;
+        if (scanTarget) { const btnX = astronaut.x; const btnY = astronaut.y - 80; const dist = Math.sqrt(Math.pow(pos.x - btnX, 2) + Math.pow(pos.y - btnY, 2)); if (dist < 62) { isScanButtonPressed = true; SoundManager.play('scan'); return; } } isScanButtonPressed = false;
       }
-      else if (gameState === GameState.DRILLING) { const btnX = canvas.width / 2; const btnY = canvas.height - 90; const radius = 70; const dist = Math.sqrt(Math.pow(pos.x - btnX, 2) + Math.pow(pos.y - btnY, 2)); if (dist < radius) isDrilling = true; }
+      else if (gameState === GameState.EXCAVATION) handleExcavationRub(pos);
+      else if (gameState === GameState.SIGNAL) handleSignalMove(pos);
+      else if (gameState === GameState.DRILLING) {
+        const btnX = canvas.width / 2;
+        const btnY = canvas.height - 90;
+        const radius = 70;
+        const dist = Math.sqrt(Math.pow(pos.x - btnX, 2) + Math.pow(pos.y - btnY, 2));
+        if (dist < radius) isDrilling = true;
+      }
+      else if (gameState === GameState.GENERATOR) handleGeneratorTap(pos);
+      else if (gameState === GameState.SPECTROMETER) handleSpectrometerTap(pos);
+      else if (gameState === GameState.SENSOR_CIRCUIT) handleSensorCircuitTap(pos);
+      else if (gameState === GameState.MICROSCOPE) handleMicroscopeTap(pos);
+      else if (gameState === GameState.REACTOR) handleReactorTap(pos);
       else if (gameState === GameState.MULTIPLAYER_RESULT) {
         const btnW = 340, btnH = 64;
         const btnX = canvas.width / 2 - btnW / 2;
@@ -1467,12 +1605,29 @@
 
     const handleMove = (pos) => {
       touchX = pos.x; touchY = pos.y; if(isPaused) return;
-      if (gameState === GameState.EXPLORATION && scanTarget) { const btnX = astronaut.x; const btnY = astronaut.y - 80; const dist = Math.sqrt(Math.pow(pos.x - btnX, 2) + Math.pow(pos.y - btnY, 2)); isScanButtonPressed = (dist < 50); }
+      if (gameState === GameState.EXPLORATION && scanTarget) { const btnX = astronaut.x; const btnY = astronaut.y - 80; const dist = Math.sqrt(Math.pow(pos.x - btnX, 2) + Math.pow(pos.y - btnY, 2)); isScanButtonPressed = (dist < 62); }
       else if (gameState === GameState.EXCAVATION) handleExcavationRub(pos);
       else if (gameState === GameState.SIGNAL) handleSignalMove(pos);
+      else if (gameState === GameState.SPECTROMETER) handleSpectrometerMove(pos);
+      else if (gameState === GameState.MICROSCOPE) handleMicroscopeMove(pos);
     };
 
-    const handleEnd = () => { isTouching = false; touchX = null; isScanButtonPressed = false; isDrilling = false; if (gameState === GameState.EXPLORATION) { scanProgress = 0; isScanning = false; } };
+    const handleEnd = () => {
+      isTouching = false;
+      touchX = null;
+      isScanButtonPressed = false;
+      isDrilling = false;
+      activeSliderControl = null;
+      if (gameState === GameState.EXPLORATION) {
+        const interruptedScan = scanTarget && scanProgress > 8 && scanProgress < scanRequired;
+        if (interruptedScan && scanReleaseHintCooldown <= 0) {
+          showInGameNotification('Tahan terus tombol SCAN sampai lingkaran penuh!', 1200);
+          scanReleaseHintCooldown = 1.2;
+        }
+        scanProgress = 0;
+        isScanning = false;
+      }
+    };
 
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleStart(getTouchPos(e)); }, {passive:false});
     canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(isTouching) handleMove(getTouchPos(e)); }, {passive:false});
@@ -1521,6 +1676,8 @@
         document.getElementById('main-menu').style.display='none'; 
         document.getElementById('char-select-menu').style.display='none'; 
         document.getElementById('multiplayer-menu').style.display='none'; 
+        const testMenu = document.getElementById('minigame-test-menu');
+        if (testMenu) testMenu.style.display = 'none';
     }
     
     // --- RESTORED MISSING GAME LOGIC FUNCTIONS ---
@@ -1550,13 +1707,16 @@
         scanRequired = gameBalance.scanRequired;
         isScanning = false;
         isScanButtonPressed = false;
+        scanPromptShown = false;
+        scanPromptFlash = 0;
+        scanReleaseHintCooldown = 0;
         floatingTexts = [];
         SoundManager.playAdventureTheme();
 
         const p = planets[currentPlanetIndex];
         const visualProfile = getPlanetExplorationVisualProfile(p.name);
         const positions = [{x:150,y:150}, {x:650,y:150}, {x:100,y:450}, {x:700,y:450}, {x:400,y:100}];
-        const mgTypes = ['excavation', 'signal', 'drill', 'excavation', 'signal'];
+        const mgTypes = getFragmentMinigameSequence(currentPlanetIndex, positions.length);
         positions.forEach((pos, i) => infoFragments.push({x: pos.x, y: pos.y, radius: 30, collected: false, data: p.infoFragments[i], pulse: 0, type: p.artifactType, index: i, minigame: mgTypes[i]}));
 
         const startPoint = { x: astronaut.x, y: astronaut.y };
@@ -1679,8 +1839,24 @@
 
     function initLeavingPlanet() { leavingTimer = 5; leavingShipY = canvas.height - 100; }
     
-    function startMinigame(fragment) { activeFragment = fragment; if (fragment.minigame === 'excavation') initExcavation(); else if (fragment.minigame === 'signal') initSignal(); else if (fragment.minigame === 'drill') initDrill(); }
-    
+    function completeActiveMinigame() {
+      SoundManager.play('collect');
+      initArtifactInfo();
+    }
+
+    function startMinigame(fragment) {
+      activeFragment = fragment;
+      if (fragment.minigame === 'excavation') initExcavation();
+      else if (fragment.minigame === 'signal') initSignal();
+      else if (fragment.minigame === 'drill') initDrill();
+      else if (fragment.minigame === 'generator') initGeneratorMinigame();
+      else if (fragment.minigame === 'spectrometer') initSpectrometerMinigame();
+      else if (fragment.minigame === 'sensorCircuit') initSensorCircuitMinigame();
+      else if (fragment.minigame === 'microscope') initMicroscopeMinigame();
+      else if (fragment.minigame === 'reactor') initReactorMinigame();
+      else initGeneratorMinigame();
+    }
+
     function initExcavation() {
       gameState = GameState.EXCAVATION;
       excavationGrid = [];
@@ -1698,9 +1874,29 @@
         }
       }
     }
-    function handleExcavationRub(pos) { excavationGrid.forEach(d => { if(d.active) { if(Math.sqrt(Math.pow(pos.x-d.x,2)+Math.pow(pos.y-d.y,2)) < excavationBrushRadius) { d.active=false; excavationCleared++; if(Math.random()<0.3) SoundManager.play('rub'); for(let i=0;i<2;i++) particles.push({x:d.x, y:d.y, vx:(Math.random()-0.5)*300, vy:(Math.random()-0.5)*300, life:0.5, c:'#8B4513'}); } } }); if(excavationCleared > excavationTargetCleared) { SoundManager.play('collect'); initArtifactInfo(); } }
-    
-    function initSignal() { gameState=GameState.SIGNAL; signalTarget=20+Math.random()*60; signalCurrent=0; signalStability=0; }
+
+    function handleExcavationRub(pos) {
+      excavationGrid.forEach((dust) => {
+        if (!dust.active) return;
+        const hit = Math.sqrt(Math.pow(pos.x - dust.x, 2) + Math.pow(pos.y - dust.y, 2)) < excavationBrushRadius;
+        if (!hit) return;
+        dust.active = false;
+        excavationCleared++;
+        if (Math.random() < 0.3) SoundManager.play('rub');
+        for (let i = 0; i < 2; i++) {
+          particles.push({ x: dust.x, y: dust.y, vx: (Math.random() - 0.5) * 300, vy: (Math.random() - 0.5) * 300, life: 0.5, c: '#8B4513' });
+        }
+      });
+      if (excavationCleared > excavationTargetCleared) completeActiveMinigame();
+    }
+
+    function initSignal() {
+      gameState = GameState.SIGNAL;
+      signalTarget = 20 + (Math.random() * 60);
+      signalCurrent = 0;
+      signalStability = 0;
+    }
+
     function handleSignalMove(pos) {
       const sliderW = Math.min(600, canvas.width - 200);
       const sliderX = (canvas.width - sliderW) / 2;
@@ -1710,10 +1906,440 @@
         if (Math.random() < 0.3) SoundManager.play('signal_noise');
       }
     }
-    function updateSignal(dt) { if (Math.abs(signalCurrent - signalTarget) < gameBalance.signalTolerance) { signalStability += dt * gameBalance.signalStabilityGainRate; if (signalStability >= 100) { SoundManager.play('collect'); initArtifactInfo(); } } else { signalStability = Math.max(0, signalStability - dt * gameBalance.signalStabilityDecayRate); } }
-    
-    function initDrill() { gameState=GameState.DRILLING; drillDepth=0; drillHeat=0; isDrilling=false; }
-    function updateDrill(dt) { if (isDrilling) { if (drillHeat < gameBalance.drillOverheatThreshold) { drillDepth += dt * gameBalance.drillDepthRate; drillHeat += dt * gameBalance.drillHeatGainRate; if(Math.random()<0.2) SoundManager.play('drill'); } else { isDrilling = false; showFloatingText("OVERHEAT!", canvas.width / 2, canvas.height / 2, '#F00'); SoundManager.play('hit'); } } else { drillHeat = Math.max(0, drillHeat - dt * gameBalance.drillCoolRate); } if (drillDepth >= 100) { SoundManager.play('collect'); initArtifactInfo(); } }
+
+    function updateSignal(dt) {
+      if (Math.abs(signalCurrent - signalTarget) < gameBalance.signalTolerance) {
+        signalStability += dt * gameBalance.signalStabilityGainRate;
+        if (signalStability >= 100) completeActiveMinigame();
+      } else {
+        signalStability = Math.max(0, signalStability - (dt * gameBalance.signalStabilityDecayRate));
+      }
+    }
+
+    function initDrill() {
+      gameState = GameState.DRILLING;
+      drillDepth = 0;
+      drillHeat = 0;
+      isDrilling = false;
+    }
+
+    function updateDrill(dt) {
+      if (isDrilling) {
+        if (drillHeat < gameBalance.drillOverheatThreshold) {
+          drillDepth += dt * gameBalance.drillDepthRate;
+          drillHeat += dt * gameBalance.drillHeatGainRate;
+          if (Math.random() < 0.2) SoundManager.play('drill');
+        } else {
+          isDrilling = false;
+          showFloatingText('OVERHEAT!', canvas.width / 2, canvas.height / 2, '#F00');
+          SoundManager.play('hit');
+        }
+      } else {
+        drillHeat = Math.max(0, drillHeat - (dt * gameBalance.drillCoolRate));
+      }
+      if (drillDepth >= 100) completeActiveMinigame();
+    }
+
+    function initGeneratorMinigame() {
+      gameState = GameState.GENERATOR;
+      generatorSwitches = [
+        { id: 0, label: 'A', x: 280, y: 220, active: false },
+        { id: 1, label: 'B', x: 430, y: 180, active: false },
+        { id: 2, label: 'C', x: 580, y: 220, active: false },
+        { id: 3, label: 'D', x: 430, y: 360, active: false }
+      ];
+      generatorSwitchOrder = [...generatorSwitches]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3 + Math.min(1, Math.floor(currentPlanetIndex / 4)))
+        .map((s) => s.id);
+      generatorInputOrder = [];
+    }
+
+    function handleGeneratorTap(pos) {
+      const clickedSwitch = generatorSwitches.find((sw) => Math.sqrt(Math.pow(pos.x - sw.x, 2) + Math.pow(pos.y - sw.y, 2)) <= 34);
+      if (!clickedSwitch) return;
+
+      generatorInputOrder.push(clickedSwitch.id);
+      clickedSwitch.active = true;
+
+      const expectedIndex = generatorInputOrder.length - 1;
+      if (generatorSwitchOrder[expectedIndex] !== clickedSwitch.id) {
+        generatorInputOrder = [];
+        generatorSwitches.forEach((sw) => { sw.active = false; });
+        showFloatingText('Urutan salah, ulangi!', canvas.width / 2, 500, '#FF6666');
+        SoundManager.play('wrong');
+        return;
+      }
+
+      SoundManager.play('click');
+      if (generatorInputOrder.length >= generatorSwitchOrder.length) {
+        completeActiveMinigame();
+      }
+    }
+
+    function initSpectrometerMinigame() {
+      gameState = GameState.SPECTROMETER;
+      activeSliderControl = null;
+      spectrometerCalibratedSteps = 0;
+      spectrometerRequiredSteps = 2 + Math.min(2, Math.floor(currentPlanetIndex / 3));
+      spectrometerTolerance = Math.max(3, 8 - Math.floor(currentPlanetIndex / 2));
+      spectrometerTarget = {
+        wave: 20 + (Math.random() * 60),
+        gain: 20 + (Math.random() * 60),
+        focus: 20 + (Math.random() * 60)
+      };
+      spectrometerCurrent = {
+        wave: Math.random() * 100,
+        gain: Math.random() * 100,
+        focus: Math.random() * 100
+      };
+    }
+
+    function initSensorCircuitMinigame() {
+      gameState = GameState.SENSOR_CIRCUIT;
+      sensorCircuitSelectedNode = -1;
+      sensorCircuitEdges = [];
+      const layouts = [
+        [
+          { x: 260, y: 180 },
+          { x: 420, y: 140 },
+          { x: 580, y: 180 },
+          { x: 260, y: 360 },
+          { x: 420, y: 400 },
+          { x: 580, y: 360 }
+        ],
+        [
+          { x: 230, y: 200 },
+          { x: 370, y: 140 },
+          { x: 560, y: 165 },
+          { x: 290, y: 355 },
+          { x: 470, y: 380 },
+          { x: 640, y: 300 }
+        ],
+        [
+          { x: 230, y: 170 },
+          { x: 410, y: 150 },
+          { x: 610, y: 190 },
+          { x: 250, y: 340 },
+          { x: 430, y: 385 },
+          { x: 620, y: 340 }
+        ]
+      ];
+      sensorCircuitNodes = layouts[Math.floor(Math.random() * layouts.length)];
+      sensorCircuitAllowedEdges = ['0-1', '1-2', '0-3', '1-4', '2-5', '3-4', '4-5', '1-3', '2-4'];
+      sensorCircuitMode = Math.random() < 0.5 ? 'activate' : 'route';
+
+      if (sensorCircuitMode === 'activate') {
+        const pool = ['0-1', '1-2', '1-4', '3-4', '4-5', '1-3', '2-4'];
+        sensorCircuitRequiredEdges = pool.sort(() => Math.random() - 0.5).slice(0, 4 + Math.min(1, Math.floor(currentPlanetIndex / 4)));
+        sensorCircuitEnergyBudget = sensorCircuitRequiredEdges.length + 2;
+        sensorCircuitHintText = 'Mode Aktivasi: hidupkan semua jalur wajib';
+      } else {
+        const pairs = [[0, 5], [3, 2], [0, 2], [3, 5]];
+        [sensorCircuitSource, sensorCircuitTarget] = pairs[Math.floor(Math.random() * pairs.length)];
+        sensorCircuitRequiredEdges = [];
+        sensorCircuitEnergyBudget = 5 + Math.floor(currentPlanetIndex / 3);
+        sensorCircuitHintText = `Mode Rute: sambungkan node ${sensorCircuitSource + 1} ke ${sensorCircuitTarget + 1}`;
+      }
+
+      sensorCircuitEnergyUsed = 0;
+    }
+
+    function hasSensorCircuitPath(sourceNode, targetNode) {
+      const adjacency = new Map();
+      sensorCircuitNodes.forEach((_, idx) => adjacency.set(idx, []));
+      sensorCircuitEdges.forEach((edge) => {
+        const [a, b] = edge.split('-').map(Number);
+        adjacency.get(a).push(b);
+        adjacency.get(b).push(a);
+      });
+
+      const visited = new Set([sourceNode]);
+      const queue = [sourceNode];
+      while (queue.length > 0) {
+        const current = queue.shift();
+        if (current === targetNode) return true;
+        (adjacency.get(current) || []).forEach((next) => {
+          if (!visited.has(next)) {
+            visited.add(next);
+            queue.push(next);
+          }
+        });
+      }
+      return false;
+    }
+
+    function initMicroscopeMinigame() {
+      gameState = GameState.MICROSCOPE;
+      activeSliderControl = null;
+      microscopeTolerance = Math.max(3, 8 - Math.floor(currentPlanetIndex / 2));
+      microscopeLens = { x: canvas.width / 2, y: 280, radius: 74 };
+      microscopeMarker = {
+        x: 320 + (Math.random() * 320),
+        y: 190 + (Math.random() * 180)
+      };
+      microscopeFocusTarget = 25 + (Math.random() * 50);
+      microscopeFocusCurrent = Math.random() * 100;
+      microscopeHintPulse = 0;
+    }
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * ((max - min) + 1)) + min;
+    }
+
+    function buildReactorZone(centerMin, centerMax, halfWidthMin, halfWidthMax) {
+      const center = getRandomInt(centerMin, centerMax);
+      const halfWidth = getRandomInt(halfWidthMin, halfWidthMax);
+      return {
+        min: clampValue(center - halfWidth),
+        max: clampValue(center + halfWidth)
+      };
+    }
+
+    function randomizeReactorValuesOutsideSafeZone() {
+      ['temp', 'pressure', 'flow'].forEach((key) => {
+        const zone = reactorSafeZones[key];
+        let value = 22 + (Math.random() * 56);
+        if (value >= zone.min && value <= zone.max) {
+          value = Math.random() < 0.5
+            ? Math.max(0, zone.min - (6 + (Math.random() * 10)))
+            : Math.min(100, zone.max + (6 + (Math.random() * 10)));
+        }
+        reactorValues[key] = clampValue(value);
+      });
+    }
+
+    function rerollReactorStepTargets() {
+      const shift = Math.min(4, Math.floor(currentPlanetIndex / 2));
+      const widthPenalty = Math.min(2, Math.floor(currentPlanetIndex / 3));
+      reactorSafeZones = {
+        temp: buildReactorZone(47 + shift, 56 - shift, 4 - widthPenalty, 7 - widthPenalty),
+        pressure: buildReactorZone(50 + shift, 61 - shift, 3 - widthPenalty, 6 - widthPenalty),
+        flow: buildReactorZone(41 + shift, 52 - shift, 5 - widthPenalty, 8 - widthPenalty)
+      };
+      randomizeReactorValuesOutsideSafeZone();
+    }
+
+    function initReactorMinigame() {
+      gameState = GameState.REACTOR;
+      reactorValues = { temp: 40, pressure: 40, flow: 40 };
+      reactorStableSteps = 0;
+      reactorRequiredStableSteps = 3 + Math.floor(currentPlanetIndex / 3);
+      rerollReactorStepTargets();
+    }
+
+    function getSliderInfo() {
+      const sliderW = Math.min(540, canvas.width - 260);
+      const sliderX = (canvas.width - sliderW) / 2;
+      return {
+        wave: { x: sliderX, y: 220, w: sliderW },
+        gain: { x: sliderX, y: 300, w: sliderW },
+        spectFocus: { x: sliderX, y: 380, w: sliderW },
+        microFocus: { x: sliderX, y: 470, w: sliderW }
+      };
+    }
+
+    function updateSliderFromPosition(controlKey, posX, targetObject, sliderLookupKey = controlKey) {
+      const slider = getSliderInfo()[sliderLookupKey];
+      if (!slider) return;
+      targetObject[controlKey] = Math.max(0, Math.min(100, ((posX - slider.x) / slider.w) * 100));
+    }
+
+    function isWithinTolerance(currentValue, targetValue, tolerance) {
+      return Math.abs(currentValue - targetValue) <= tolerance;
+    }
+
+    function handleSpectrometerMove(pos) {
+      if (!activeSliderControl) return;
+      const sliderLookupKey = activeSliderControl === 'focus' ? 'spectFocus' : activeSliderControl;
+      updateSliderFromPosition(activeSliderControl, pos.x, spectrometerCurrent, sliderLookupKey);
+      if (Math.random() < 0.22) SoundManager.play('signal_noise');
+    }
+
+    function handleSpectrometerTap(pos) {
+      const sliderMap = getSliderInfo();
+      ['wave', 'gain', 'focus'].forEach((key) => {
+        const sliderLookupKey = key === 'focus' ? 'spectFocus' : key;
+        const s = sliderMap[sliderLookupKey];
+        if (pos.y > s.y - 24 && pos.y < s.y + 24) {
+          activeSliderControl = key;
+          updateSliderFromPosition(key, pos.x, spectrometerCurrent, sliderLookupKey);
+        }
+      });
+
+      const lockW = 300;
+      const lockH = 64;
+      const lockX = canvas.width / 2 - (lockW / 2);
+      const lockY = 416;
+      const clickedLock = pos.x >= lockX && pos.x <= lockX + lockW && pos.y >= lockY && pos.y <= lockY + lockH;
+      if (!clickedLock) return;
+
+      const allAligned = isWithinTolerance(spectrometerCurrent.wave, spectrometerTarget.wave, spectrometerTolerance)
+        && isWithinTolerance(spectrometerCurrent.gain, spectrometerTarget.gain, spectrometerTolerance)
+        && isWithinTolerance(spectrometerCurrent.focus, spectrometerTarget.focus, spectrometerTolerance);
+
+      if (!allAligned) {
+        showFloatingText('Belum presisi!', canvas.width / 2, 520, '#FF6666');
+        SoundManager.play('wrong');
+        return;
+      }
+
+      spectrometerCalibratedSteps++;
+      SoundManager.play('correct');
+      if (spectrometerCalibratedSteps >= spectrometerRequiredSteps) {
+        completeActiveMinigame();
+        return;
+      }
+
+      spectrometerTarget = {
+        wave: 20 + (Math.random() * 60),
+        gain: 20 + (Math.random() * 60),
+        focus: 20 + (Math.random() * 60)
+      };
+      showFloatingText('Tahap berikutnya!', canvas.width / 2, 520, '#7CFC00');
+    }
+
+    function handleSensorCircuitTap(pos) {
+      const clickedNode = sensorCircuitNodes.findIndex((node) => Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2)) <= 28);
+      if (clickedNode === -1) return;
+
+      if (sensorCircuitSelectedNode === -1) {
+        sensorCircuitSelectedNode = clickedNode;
+        SoundManager.play('click');
+        return;
+      }
+
+      if (sensorCircuitSelectedNode === clickedNode) {
+        sensorCircuitSelectedNode = -1;
+        return;
+      }
+
+      const a = Math.min(sensorCircuitSelectedNode, clickedNode);
+      const b = Math.max(sensorCircuitSelectedNode, clickedNode);
+      const edgeKey = `${a}-${b}`;
+      const allowedEdge = sensorCircuitAllowedEdges.includes(edgeKey);
+      sensorCircuitSelectedNode = -1;
+      if (!allowedEdge) {
+        SoundManager.play('wrong');
+        return;
+      }
+
+      const edgeIndex = sensorCircuitEdges.indexOf(edgeKey);
+      if (edgeIndex >= 0) {
+        sensorCircuitEdges.splice(edgeIndex, 1);
+      } else {
+        sensorCircuitEdges.push(edgeKey);
+      }
+      sensorCircuitEnergyUsed = sensorCircuitEdges.length;
+
+      if (sensorCircuitEnergyUsed > sensorCircuitEnergyBudget) {
+        showFloatingText('Energi berlebih!', canvas.width / 2, 500, '#FF6666');
+        SoundManager.play('hit');
+        return;
+      }
+
+      const allRequiredActive = sensorCircuitMode === 'activate'
+        ? sensorCircuitRequiredEdges.every((edge) => sensorCircuitEdges.includes(edge))
+        : hasSensorCircuitPath(sensorCircuitSource, sensorCircuitTarget);
+      if (allRequiredActive) {
+        completeActiveMinigame();
+      } else {
+        SoundManager.play('click');
+      }
+    }
+
+    function handleMicroscopeMove(pos) {
+      if (activeSliderControl === 'focus') {
+        const slider = getSliderInfo().microFocus;
+        microscopeFocusCurrent = Math.max(0, Math.min(100, ((pos.x - slider.x) / slider.w) * 100));
+      } else {
+        microscopeLens.x = Math.max(210, Math.min(canvas.width - 210, pos.x));
+        microscopeLens.y = Math.max(150, Math.min(390, pos.y));
+      }
+
+      const markerInLens = Math.sqrt(Math.pow(microscopeLens.x - microscopeMarker.x, 2) + Math.pow(microscopeLens.y - microscopeMarker.y, 2)) <= 42;
+      const focusOk = isWithinTolerance(microscopeFocusCurrent, microscopeFocusTarget, microscopeTolerance);
+      if (markerInLens && focusOk) completeActiveMinigame();
+    }
+
+    function handleMicroscopeTap(pos) {
+      const focusSlider = getSliderInfo().microFocus;
+      if (pos.y > focusSlider.y - 24 && pos.y < focusSlider.y + 24) {
+        activeSliderControl = 'focus';
+        microscopeFocusCurrent = Math.max(0, Math.min(100, ((pos.x - focusSlider.x) / focusSlider.w) * 100));
+      } else {
+        activeSliderControl = null;
+        microscopeLens.x = Math.max(210, Math.min(canvas.width - 210, pos.x));
+        microscopeLens.y = Math.max(150, Math.min(390, pos.y));
+      }
+
+      const markerInLens = Math.sqrt(Math.pow(microscopeLens.x - microscopeMarker.x, 2) + Math.pow(microscopeLens.y - microscopeMarker.y, 2)) <= 42;
+      const focusOk = isWithinTolerance(microscopeFocusCurrent, microscopeFocusTarget, microscopeTolerance);
+      if (markerInLens && focusOk) completeActiveMinigame();
+    }
+
+    function clampValue(value, minValue = 0, maxValue = 100) {
+      return Math.max(minValue, Math.min(maxValue, value));
+    }
+
+    function isReactorStable() {
+      const keys = ['temp', 'pressure', 'flow'];
+      return keys.every((key) => {
+        const zone = reactorSafeZones[key];
+        return reactorValues[key] >= zone.min && reactorValues[key] <= zone.max;
+      });
+    }
+
+    function applyReactorDelta(key, direction) {
+      const delta = direction === 'up' ? 5 : -5;
+      if (key === 'temp') {
+        reactorValues.temp = clampValue(reactorValues.temp + delta);
+        reactorValues.pressure = clampValue(reactorValues.pressure + (delta * 0.28));
+        reactorValues.flow = clampValue(reactorValues.flow - (delta * 0.24));
+      } else if (key === 'pressure') {
+        reactorValues.pressure = clampValue(reactorValues.pressure + delta);
+        reactorValues.flow = clampValue(reactorValues.flow + (delta * 0.26));
+        reactorValues.temp = clampValue(reactorValues.temp - (delta * 0.22));
+      } else {
+        reactorValues.flow = clampValue(reactorValues.flow + delta);
+        reactorValues.temp = clampValue(reactorValues.temp + (delta * 0.24));
+        reactorValues.pressure = clampValue(reactorValues.pressure - (delta * 0.26));
+      }
+
+      if (isReactorStable()) {
+        reactorStableSteps++;
+        if (reactorStableSteps < reactorRequiredStableSteps) {
+          rerollReactorStepTargets();
+          showFloatingText('Range langkah berikutnya aktif!', canvas.width / 2, 500, '#7CFC00');
+        }
+      }
+
+      if (reactorStableSteps >= reactorRequiredStableSteps) {
+        completeActiveMinigame();
+      }
+    }
+
+    function handleReactorTap(pos) {
+      const rows = [
+        { key: 'temp', y: 220 },
+        { key: 'pressure', y: 310 },
+        { key: 'flow', y: 400 }
+      ];
+      rows.forEach((row) => {
+        const plusBtn = { x: canvas.width / 2 + 120, y: row.y - 26, w: 54, h: 42 };
+        const minusBtn = { x: canvas.width / 2 + 186, y: row.y - 26, w: 54, h: 42 };
+        const inPlus = pos.x >= plusBtn.x && pos.x <= plusBtn.x + plusBtn.w && pos.y >= plusBtn.y && pos.y <= plusBtn.y + plusBtn.h;
+        const inMinus = pos.x >= minusBtn.x && pos.x <= minusBtn.x + minusBtn.w && pos.y >= minusBtn.y && pos.y <= minusBtn.y + minusBtn.h;
+        if (inPlus) {
+          applyReactorDelta(row.key, 'up');
+          SoundManager.play('click');
+        }
+        if (inMinus) {
+          applyReactorDelta(row.key, 'down');
+          SoundManager.play('click');
+        }
+      });
+    }
     
     function initArtifactInfo() { gameState = GameState.ARTIFACT_INFO; artifactInfoTimer = 10; }
     function closeArtifactInfo() { activeFragment.collected = true; collectedFragments++; score += 200; scanTarget = null; if(collectedFragments >= totalFragments) { let oxyBonus = Math.floor(currentOxygen * 10); score += oxyBonus; showFloatingText(`BONUS OKSIGEN +${oxyBonus}`, canvas.width/2, canvas.height/2, '#00BFFF'); if (activeObstacleHits === 0) { score += 300; setTimeout(() => showFloatingText("CLEAN RUN +300", canvas.width/2, canvas.height/2 + 40, '#00FF00'), 500); } SoundManager.play('correct'); explorationPhase = 'complete'; initReadingPhase(); setTimeout(() => { gameState = GameState.READING; }, 2000); } else { gameState = GameState.EXPLORATION; } }
@@ -1834,6 +2460,8 @@
 
       const planet = planets[currentPlanetIndex];
       const visualProfile = getPlanetExplorationVisualProfile(planet.name);
+      if (scanReleaseHintCooldown > 0) scanReleaseHintCooldown -= dt;
+      if (scanPromptFlash > 0) scanPromptFlash = Math.max(0, scanPromptFlash - (dt * 1.8));
       currentOxygen -= gameBalance.oxygenDrainPerSec * dt;
       if (currentOxygen <= 0) {
         currentOxygen = 0;
@@ -1947,6 +2575,7 @@
         return true;
       });
 
+      const hadScanTarget = !!scanTarget;
       scanTarget = null;
       infoFragments.forEach(f => {
         if (!f.collected) {
@@ -1954,6 +2583,18 @@
           if (Math.sqrt(Math.pow(astronaut.x - f.x, 2) + Math.pow(astronaut.y - f.y, 2)) < 70) scanTarget = f;
         }
       });
+
+      if (scanTarget && !hadScanTarget) {
+        scanPromptFlash = 1;
+        if (!scanPromptShown) {
+          showInGameNotification('Dekati artefak lalu tahan tombol hijau SCAN.', 2200);
+          scanPromptShown = true;
+        }
+      }
+
+      if (!scanTarget) {
+        isScanButtonPressed = false;
+      }
 
       if (scanTarget && isScanButtonPressed) {
         isScanning = true;
@@ -2017,21 +2658,27 @@
     // --- DRAWING ---
     function drawHUD() { 
       ctx.save(); 
-      const compactTopHud = gameState === GameState.READING;
+      const isMinigameState = gameState === GameState.EXCAVATION || gameState === GameState.SIGNAL || gameState === GameState.DRILLING || gameState === GameState.GENERATOR || gameState === GameState.SPECTROMETER || gameState === GameState.SENSOR_CIRCUIT || gameState === GameState.MICROSCOPE || gameState === GameState.REACTOR;
+      const compactTopHud = gameState === GameState.READING || isMinigameState;
       const hudNameY = compactTopHud ? 22 : 30;
       const hudHpY = compactTopHud ? 44 : 60;
-      ctx.fillStyle = '#FFF'; ctx.font = compactTopHud ? 'bold 18px Arial' : 'bold 20px Arial'; ctx.textAlign = 'left'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4; 
+      ctx.fillStyle = '#FFF'; ctx.font = compactTopHud ? 'bold 16px Arial' : 'bold 20px Arial'; ctx.textAlign = 'left'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4; 
       ctx.fillText(`Ranger: ${playerData.name}`, 20, hudNameY); 
       const displayHP = Math.max(0, Math.min(100, Math.round(playerHP)));
       ctx.fillStyle = playerHP > 50 ? '#0F0' : (playerHP > 20 ? '#FF0' : '#F00'); ctx.fillText(`HP: ${displayHP}%`, 20, hudHpY); 
       
       // --- PERBAIKAN POSISI SKOR ---
-      ctx.textAlign = 'center'; ctx.fillStyle = '#FFD700'; 
+      ctx.fillStyle = '#FFD700'; 
       if (gameState === GameState.BATTLE) {
           // Khusus Battle: Taruh di atas (y=50) karena bawah penuh tombol kuis
+        ctx.textAlign = 'center';
           ctx.fillText(`Skor: ${score}`, canvas.width / 2, 50);
+      } else if (isMinigameState) {
+        ctx.textAlign = 'right';
+        ctx.fillText(`Skor: ${score}`, canvas.width - 20, 26);
       } else {
           // Mode Lain: Taruh di Tengah-Bawah sesuai permintaan
+        ctx.textAlign = 'center';
           ctx.fillText(`Skor: ${score}`, canvas.width / 2, canvas.height - 30);
       }
 
@@ -2394,23 +3041,57 @@
         const btnX = astronaut.x;
         const btnY = astronaut.y - 80;
         const r = 40;
+        const isMercury = planet.name === 'Merkurius';
+        const pulse = (Math.sin(Date.now() / 180) + 1) / 2;
+        const progressRatio = Math.max(0, Math.min(1, scanProgress / scanRequired));
+
+        ctx.beginPath();
+        ctx.arc(btnX, btnY, r + 10 + (pulse * 5), 0, 6.28);
+        ctx.fillStyle = `rgba(80,255,120,${0.08 + (pulse * 0.08) + (scanPromptFlash * 0.14)})`;
+        ctx.fill();
+
+        if (isMercury) {
+          ctx.beginPath();
+          ctx.arc(btnX, btnY, r + 20 + (pulse * 6), 0, 6.28);
+          ctx.strokeStyle = `rgba(255,140,70,${0.24 + (pulse * 0.24)})`;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        }
+
         ctx.beginPath();
         ctx.moveTo(btnX, btnY);
         ctx.lineTo(scanTarget.x, scanTarget.y);
-        ctx.strokeStyle = 'rgba(50,205,50,0.5)';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isMercury ? 'rgba(255,170,90,0.75)' : 'rgba(50,205,50,0.65)';
+        ctx.lineWidth = isMercury ? 3 : 2;
         ctx.stroke();
+
         ctx.beginPath();
         ctx.arc(btnX, btnY, r, 0, 6.28);
-        ctx.fillStyle = isScanButtonPressed ? '#32CD32' : 'rgba(0,255,0,0.6)';
+        ctx.fillStyle = isScanButtonPressed ? '#32CD32' : (isMercury ? 'rgba(30,210,95,0.82)' : 'rgba(0,255,0,0.6)');
         ctx.fill();
         ctx.strokeStyle = '#FFF';
         ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(btnX, btnY, r + 6, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * progressRatio));
+        ctx.strokeStyle = '#7CFC00';
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
         ctx.fillStyle = '#FFF';
         ctx.textAlign = 'center';
         ctx.font = 'bold 12px Arial';
-        ctx.fillText('TAHAN', btnX, btnY - 5);
-        ctx.fillText('SCAN', btnX, btnY + 15);
+        if (isScanButtonPressed) {
+          ctx.fillText('MEN-SCAN', btnX, btnY - 5);
+          ctx.fillText(`${Math.round(progressRatio * 100)}%`, btnX, btnY + 15);
+        } else {
+          ctx.fillText('TAHAN', btnX, btnY - 5);
+          ctx.fillText('SCAN', btnX, btnY + 15);
+        }
+
+        ctx.font = 'bold 13px Arial';
+        ctx.fillStyle = isMercury ? '#FFD39B' : '#C6FFD8';
+        ctx.fillText('TEKAN & TAHAN', btnX, btnY - 54);
       }
 
       if (collectedFragments > 0) {
@@ -2471,6 +3152,130 @@
         ctx.globalAlpha = 1.0;
       });
     }
+    function getMinigamePanelRect() {
+      return {
+        x: 120,
+        y: 110,
+        w: canvas.width - 240,
+        h: canvas.height - 190
+      };
+    }
+
+    function drawMinigameFrame(title, subtitle, accentColor = '#00BFFF') {
+      const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      bg.addColorStop(0, '#0b1220');
+      bg.addColorStop(1, '#05070d');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const panel = getMinigamePanelRect();
+      ctx.fillStyle = 'rgba(8, 12, 24, 0.82)';
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(panel.x, panel.y, panel.w, panel.h, 18);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 30px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(title, canvas.width / 2, 56);
+      ctx.fillStyle = '#E6EEF8';
+      ctx.font = '16px Arial';
+      ctx.fillText(subtitle, canvas.width / 2, 84);
+    }
+
+    function drawSliderControl(label, key, currentValue, targetValue, y, tolerance, sliderLookupKey = key) {
+      const slider = getSliderInfo()[sliderLookupKey];
+      const knobX = slider.x + (currentValue / 100) * slider.w;
+      const inRange = isWithinTolerance(currentValue, targetValue, tolerance);
+
+      ctx.fillStyle = '#FFF';
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 17px Arial';
+      ctx.fillText(`${label}: ${Math.round(currentValue)}`, slider.x, y - 16);
+
+      ctx.fillStyle = '#253043';
+      ctx.fillRect(slider.x, y - 6, slider.w, 12);
+      ctx.fillStyle = '#6ED6FF';
+      ctx.fillRect(slider.x, y - 6, (targetValue / 100) * slider.w, 12);
+      ctx.fillStyle = 'rgba(255, 230, 120, 0.35)';
+      const tolPx = (slider.w * (tolerance / 100));
+      const targetPx = slider.x + (targetValue / 100) * slider.w;
+      ctx.fillRect(targetPx - tolPx, y - 10, tolPx * 2, 20);
+
+      ctx.fillStyle = inRange ? '#00ff88' : '#ffffff';
+      ctx.beginPath();
+      ctx.arc(knobX, y, 14, 0, 6.28);
+      ctx.fill();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function drawGenerator() {
+      drawMinigameFrame('PERBAIKI GENERATOR', 'Aktifkan saklar sesuai urutan kode daya.', '#41D3FF');
+      const panel = getMinigamePanelRect();
+
+      generatorSwitches.forEach((sw) => {
+        const isInSequence = generatorSwitchOrder.includes(sw.id);
+        ctx.fillStyle = sw.active ? '#00FF88' : (isInSequence ? '#4FA7FF' : '#8899AA');
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, 34, 0, 6.28);
+        ctx.fill();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#001018';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(sw.label, sw.x, sw.y + 8);
+      });
+
+      ctx.fillStyle = '#EAF3FF';
+      ctx.font = 'bold 18px Arial';
+      ctx.textAlign = 'center';
+      const orderText = generatorSwitchOrder.map((id) => generatorSwitches.find((sw) => sw.id === id)?.label || '?').join(' -> ');
+      ctx.fillText(`Kode: ${orderText}`, canvas.width / 2, panel.y + panel.h - 58);
+      ctx.fillStyle = '#8FD1FF';
+      const inputText = generatorInputOrder.map((id) => generatorSwitches.find((sw) => sw.id === id)?.label || '?').join(' -> ') || '-';
+      ctx.fillText(`Input: ${inputText}`, canvas.width / 2, panel.y + panel.h - 30);
+      drawHUD();
+    }
+
+    function drawSpectrometer() {
+      drawMinigameFrame('KALIBRASI SPEKTROMETER', 'Selaraskan Wave, Gain, Focus lalu tekan Kunci.', '#6ED6FF');
+
+      spectrometerTolerance = Math.max(3, 8 - Math.floor(currentPlanetIndex / 2));
+      drawSliderControl('Wave', 'wave', spectrometerCurrent.wave, spectrometerTarget.wave, 220, spectrometerTolerance);
+      drawSliderControl('Gain', 'gain', spectrometerCurrent.gain, spectrometerTarget.gain, 300, spectrometerTolerance);
+      drawSliderControl('Focus', 'focus', spectrometerCurrent.focus, spectrometerTarget.focus, 380, spectrometerTolerance, 'spectFocus');
+
+      const lockW = 300;
+      const lockH = 64;
+      const lockX = canvas.width / 2 - (lockW / 2);
+      const lockY = 416;
+      ctx.fillStyle = '#1E90FF';
+      ctx.beginPath();
+      ctx.roundRect(lockX, lockY, lockW, lockH, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#FFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 22px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('KUNCI KALIBRASI', canvas.width / 2, lockY + (lockH / 2));
+      ctx.textBaseline = 'alphabetic';
+
+      ctx.font = 'bold 18px Arial';
+      ctx.fillStyle = '#7CFC00';
+      ctx.fillText(`Tahap: ${spectrometerCalibratedSteps}/${spectrometerRequiredSteps}`, canvas.width / 2, 500);
+      drawHUD();
+    }
+
     function drawSignal() {
       const frameW = 400;
       const frameH = 300;
@@ -2480,7 +3285,49 @@
       const sliderW = Math.min(600, canvas.width - 200);
       const sliderX = (canvas.width - sliderW) / 2;
       const sliderY = canvas.height - 44;
-      ctx.fillStyle = '#111'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#FFD700'; ctx.font='bold 30px Arial'; ctx.textAlign='center'; ctx.fillText("PENYELARASAN SINYAL", canvas.width/2, 60); ctx.font = '18px Arial'; ctx.fillStyle='#FFF'; ctx.fillText("Geser slider sampai sinyal jernih!", canvas.width/2, 100); ctx.fillStyle = '#000'; ctx.fillRect(frameX, frameY, frameW, frameH); ctx.strokeStyle = '#0F0'; ctx.lineWidth = 5; ctx.strokeRect(frameX, frameY, frameW, frameH); let clarity = Math.max(0, 1 - Math.abs(signalCurrent - signalTarget)/30); ctx.globalAlpha = clarity; ctx.fillStyle = '#00BFFF'; ctx.beginPath(); ctx.arc(canvas.width / 2, frameY + frameH / 2, 80, 0, 6.28); ctx.fill(); ctx.globalAlpha = 1.0 - clarity; for(let i=0; i<100; i++) { ctx.fillStyle = Math.random()>0.5 ? '#FFF' : '#333'; ctx.fillRect(frameX + Math.random()*frameW, frameY + Math.random()*frameH, 4, 4); } ctx.globalAlpha = 1.0; ctx.fillStyle = '#333'; ctx.fillRect(frameX, progressY, frameW, 20); ctx.fillStyle = '#0F0'; ctx.fillRect(frameX, progressY, (signalStability / 100) * frameW, 20); ctx.fillStyle = '#555'; ctx.fillRect(sliderX, sliderY, sliderW, 10); ctx.fillStyle = '#FFF'; ctx.beginPath(); ctx.arc(sliderX + (signalCurrent / 100) * sliderW, sliderY + 5, 20, 0, 6.28); ctx.fill(); }
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 30px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('PENYELARASAN SINYAL', canvas.width / 2, 60);
+      ctx.font = '18px Arial';
+      ctx.fillStyle = '#FFF';
+      ctx.fillText('Geser slider sampai sinyal jernih!', canvas.width / 2, 100);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(frameX, frameY, frameW, frameH);
+      ctx.strokeStyle = '#0F0';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(frameX, frameY, frameW, frameH);
+
+      const clarity = Math.max(0, 1 - (Math.abs(signalCurrent - signalTarget) / 30));
+      ctx.globalAlpha = clarity;
+      ctx.fillStyle = '#00BFFF';
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, frameY + (frameH / 2), 80, 0, 6.28);
+      ctx.fill();
+
+      ctx.globalAlpha = 1.0 - clarity;
+      for (let i = 0; i < 100; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? '#FFF' : '#333';
+        ctx.fillRect(frameX + (Math.random() * frameW), frameY + (Math.random() * frameH), 4, 4);
+      }
+      ctx.globalAlpha = 1.0;
+
+      ctx.fillStyle = '#333';
+      ctx.fillRect(frameX, progressY, frameW, 20);
+      ctx.fillStyle = '#0F0';
+      ctx.fillRect(frameX, progressY, (signalStability / 100) * frameW, 20);
+
+      ctx.fillStyle = '#555';
+      ctx.fillRect(sliderX, sliderY, sliderW, 10);
+      ctx.fillStyle = '#FFF';
+      ctx.beginPath();
+      ctx.arc(sliderX + ((signalCurrent / 100) * sliderW), sliderY + 5, 20, 0, 6.28);
+      ctx.fill();
+      drawHUD();
+    }
+
     function drawDrilling() {
       const gaugeY = 150;
       const gaugeH = 300;
@@ -2489,14 +3336,296 @@
       const leftGaugeX = centerX - 130;
       const rightGaugeX = centerX + 100;
       const buttonY = canvas.height - 90;
-      ctx.fillStyle = '#222'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#FFD700'; ctx.font='bold 30px Arial'; ctx.textAlign='center'; ctx.fillText("PENGEBORAN INTI", canvas.width/2, 60); ctx.fillStyle='#FFF'; ctx.font = '18px Arial'; ctx.fillText("Tahan untuk mengebor. Lepas jika panas!", canvas.width/2, 100); ctx.fillStyle = '#000'; ctx.fillRect(rightGaugeX, gaugeY, gaugeW, gaugeH); ctx.fillStyle = '#00BFFF'; ctx.fillRect(rightGaugeX, gaugeY + (100-drillDepth)*3, gaugeW, drillDepth*3); ctx.fillStyle = '#000'; ctx.fillRect(leftGaugeX, gaugeY, gaugeW, gaugeH); ctx.fillStyle = drillHeat > 80 ? '#F00' : '#FFA500'; ctx.fillRect(leftGaugeX, gaugeY + (100-drillHeat)*3, gaugeW, drillHeat*3); ctx.strokeStyle = '#FFF'; ctx.strokeRect(leftGaugeX, gaugeY, gaugeW, gaugeH); ctx.strokeRect(rightGaugeX, gaugeY, gaugeW, gaugeH); if (drillHeat > 70) { ctx.fillStyle = '#FF0000'; ctx.font = 'bold 20px Arial'; ctx.fillText("AWAS PANAS!", leftGaugeX + gaugeW / 2, 130); } ctx.fillStyle = isDrilling ? '#800' : '#F00'; ctx.beginPath(); ctx.arc(centerX, buttonY, 70, 0, 6.28); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 24px Arial'; ctx.fillText("BOR!", centerX, buttonY + 8); }
+
+      ctx.fillStyle = '#222';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 30px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('PENGEBORAN INTI', canvas.width / 2, 60);
+      ctx.fillStyle = '#FFF';
+      ctx.font = '18px Arial';
+      ctx.fillText('Tahan untuk mengebor. Lepas jika panas!', canvas.width / 2, 100);
+
+      ctx.fillStyle = '#000';
+      ctx.fillRect(rightGaugeX, gaugeY, gaugeW, gaugeH);
+      ctx.fillStyle = '#00BFFF';
+      ctx.fillRect(rightGaugeX, gaugeY + ((100 - drillDepth) * 3), gaugeW, drillDepth * 3);
+
+      ctx.fillStyle = '#000';
+      ctx.fillRect(leftGaugeX, gaugeY, gaugeW, gaugeH);
+      ctx.fillStyle = drillHeat > 80 ? '#F00' : '#FFA500';
+      ctx.fillRect(leftGaugeX, gaugeY + ((100 - drillHeat) * 3), gaugeW, drillHeat * 3);
+
+      ctx.strokeStyle = '#FFF';
+      ctx.strokeRect(leftGaugeX, gaugeY, gaugeW, gaugeH);
+      ctx.strokeRect(rightGaugeX, gaugeY, gaugeW, gaugeH);
+
+      if (drillHeat > 70) {
+        ctx.fillStyle = '#FF0000';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText('AWAS PANAS!', leftGaugeX + (gaugeW / 2), 130);
+      }
+
+      ctx.fillStyle = isDrilling ? '#800' : '#F00';
+      ctx.beginPath();
+      ctx.arc(centerX, buttonY, 70, 0, 6.28);
+      ctx.fill();
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 24px Arial';
+      ctx.fillText('BOR!', centerX, buttonY + 8);
+      drawHUD();
+    }
+
     function drawExcavation() {
       const panelSize = 400;
       const panelX = (canvas.width - panelSize) / 2;
       const panelY = Math.max(84, (canvas.height - panelSize) / 2);
       const centerX = canvas.width / 2;
-      const centerY = panelY + panelSize / 2;
-      ctx.fillStyle = '#333'; ctx.fillRect(panelX, panelY, panelSize, panelSize); ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(centerX, centerY, 80, 0, 6.28); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center'; ctx.fillText("ARTEFAK TERDETEKSI!", centerX, panelY + 40); ctx.font = '16px Arial'; ctx.fillText("Gosok layar untuk membersihkan!", centerX, panelY + panelSize - 20); excavationGrid.forEach(d => { if(d.active) { ctx.fillStyle = '#8B4513'; ctx.beginPath(); ctx.arc(d.x, d.y, 10, 0, 6.28); ctx.fill(); } }); if (Date.now() % 1000 < 500) { ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.beginPath(); ctx.arc(centerX, centerY, 30, 0, 6.28); ctx.fill(); } drawHUD(); }
+      const centerY = panelY + (panelSize / 2);
+
+      ctx.fillStyle = '#333';
+      ctx.fillRect(panelX, panelY, panelSize, panelSize);
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 80, 0, 6.28);
+      ctx.fill();
+
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('ARTEFAK TERDETEKSI!', centerX, panelY + 40);
+      ctx.font = '16px Arial';
+      ctx.fillText('Gosok layar untuk membersihkan!', centerX, panelY + panelSize - 20);
+
+      excavationGrid.forEach((dust) => {
+        if (!dust.active) return;
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.arc(dust.x, dust.y, 10, 0, 6.28);
+        ctx.fill();
+      });
+
+      if (Date.now() % 1000 < 500) {
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 30, 0, 6.28);
+        ctx.fill();
+      }
+      drawHUD();
+    }
+
+    function drawSensorCircuit() {
+      drawMinigameFrame('RAKIT RANGKAIAN SENSOR', 'Hubungkan node penting tanpa melebihi batas energi.', '#7ED0FF');
+
+      sensorCircuitEdges.forEach((edge) => {
+        const [a, b] = edge.split('-').map(Number);
+        const n1 = sensorCircuitNodes[a];
+        const n2 = sensorCircuitNodes[b];
+        const isRequired = sensorCircuitRequiredEdges.includes(edge);
+        const isRouteEdge = sensorCircuitMode === 'route' && (a === sensorCircuitSource || b === sensorCircuitSource || a === sensorCircuitTarget || b === sensorCircuitTarget);
+        ctx.strokeStyle = isRequired ? '#00FF88' : (isRouteEdge ? '#FFD166' : '#00BFFF');
+        ctx.lineWidth = isRequired ? 5 : 3;
+        ctx.beginPath();
+        ctx.moveTo(n1.x, n1.y);
+        ctx.lineTo(n2.x, n2.y);
+        ctx.stroke();
+      });
+
+      sensorCircuitNodes.forEach((node, idx) => {
+        const isGoalNode = sensorCircuitMode === 'route' && (idx === sensorCircuitSource || idx === sensorCircuitTarget);
+        ctx.fillStyle = sensorCircuitSelectedNode === idx ? '#FFD700' : (isGoalNode ? '#FFD166' : '#FFFFFF');
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 22, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = '#0D1321';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText(String(idx + 1), node.x, node.y + 5);
+      });
+
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText(`Energi: ${sensorCircuitEnergyUsed}/${sensorCircuitEnergyBudget}`, canvas.width / 2, 458);
+      ctx.font = '15px Arial';
+      ctx.fillStyle = '#AEE8FF';
+      if (sensorCircuitMode === 'activate') {
+        const routeText = sensorCircuitRequiredEdges.map((edge) => {
+          const [a, b] = edge.split('-').map(Number);
+          return `${a + 1}-${b + 1}`;
+        }).join(', ');
+        ctx.fillText(sensorCircuitHintText, canvas.width / 2, 486);
+        ctx.fillText(`Jalur wajib: ${routeText}`, canvas.width / 2, 512);
+      } else {
+        ctx.fillText(sensorCircuitHintText, canvas.width / 2, 492);
+      }
+      drawHUD();
+    }
+
+    function drawMicroscope() {
+      drawMinigameFrame('KALIBRASI MIKROSKOP DIGITAL', 'Geser lensa ke titik merah dan sesuaikan fokus.', '#7CE3BE');
+
+      const slideX = 220;
+      const slideY = 150;
+      const slideW = 520;
+      const slideH = 250;
+
+      ctx.fillStyle = '#DDE7EE';
+      ctx.fillRect(slideX, slideY, slideW, slideH);
+      ctx.fillStyle = '#C6D5E0';
+      for (let i = 0; i < 28; i++) {
+        const px = slideX + 8 + ((i * 37) % (slideW - 16));
+        const py = slideY + 8 + (((i * 53) % (slideH - 16)));
+        ctx.beginPath();
+        ctx.arc(px, py, 3, 0, 6.28);
+        ctx.fill();
+      }
+
+      microscopeHintPulse += 0.06;
+      const hintAlpha = 0.28 + (Math.sin(microscopeHintPulse) * 0.12);
+      ctx.fillStyle = `rgba(255, 80, 80, ${hintAlpha})`;
+      ctx.beginPath();
+      ctx.arc(microscopeMarker.x, microscopeMarker.y, 11, 0, 6.28);
+      ctx.fill();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(microscopeLens.x, microscopeLens.y, microscopeLens.radius, 0, 6.28);
+      ctx.clip();
+      ctx.fillStyle = 'rgba(30, 80, 120, 0.16)';
+      ctx.fillRect(slideX, slideY, slideW, slideH);
+      ctx.fillStyle = '#ff4545';
+      ctx.beginPath();
+      ctx.arc(microscopeMarker.x, microscopeMarker.y, 16, 0, 6.28);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.strokeStyle = '#00E1FF';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(microscopeLens.x, microscopeLens.y, microscopeLens.radius, 0, 6.28);
+      ctx.stroke();
+
+      drawSliderControl('Focus', 'focus', microscopeFocusCurrent, microscopeFocusTarget, 470, microscopeTolerance, 'microFocus');
+
+      const markerInLens = Math.sqrt(Math.pow(microscopeLens.x - microscopeMarker.x, 2) + Math.pow(microscopeLens.y - microscopeMarker.y, 2)) <= 42;
+      const focusOk = isWithinTolerance(microscopeFocusCurrent, microscopeFocusTarget, microscopeTolerance);
+      const confidence = markerInLens ? (focusOk ? 100 : 70) : 35;
+
+      ctx.fillStyle = '#2F3944';
+      ctx.fillRect(canvas.width / 2 - 180, 430, 360, 16);
+      ctx.fillStyle = focusOk && markerInLens ? '#00FF88' : '#FFD166';
+      ctx.fillRect(canvas.width / 2 - 180, 430, confidence * 3.6, 16);
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 17px Arial';
+      ctx.fillText(`Deteksi: ${Math.round(confidence)}%`, canvas.width / 2, 454);
+      drawHUD();
+    }
+
+    function drawReactor() {
+      drawMinigameFrame('STABILKAN REAKTOR MINI', 'Range target berubah di tiap langkah stabil.', '#FF8F66');
+
+      const rows = [
+        { key: 'temp', label: 'Temperature', y: 220, color: '#FF7A59' },
+        { key: 'pressure', label: 'Pressure', y: 310, color: '#5DA9FF' },
+        { key: 'flow', label: 'Flow Rate', y: 400, color: '#7CFC00' }
+      ];
+
+      rows.forEach((row) => {
+        const value = reactorValues[row.key];
+        const zone = reactorSafeZones[row.key];
+        const inZone = value >= zone.min && value <= zone.max;
+        const barX = canvas.width / 2 - 220;
+        const barY = row.y - 18;
+        const barW = 320;
+        const zoneX = barX + ((zone.min / 100) * barW);
+        const zoneW = ((zone.max - zone.min) / 100) * barW;
+        const valueX = barX + ((value / 100) * barW);
+
+        ctx.fillStyle = '#2B2B2B';
+        ctx.fillRect(barX, barY, barW, 30);
+
+        // Safe zone: stronger fill + border so the target range is easy to read.
+        ctx.fillStyle = 'rgba(0, 255, 136, 0.34)';
+        ctx.fillRect(zoneX, barY, zoneW, 30);
+        ctx.strokeStyle = '#1CFF9C';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(zoneX, barY, zoneW, 30);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+        ctx.lineWidth = 1;
+        for (let t = 0; t <= 100; t += 10) {
+          const tickX = barX + ((t / 100) * barW);
+          ctx.beginPath();
+          ctx.moveTo(tickX, barY + 2);
+          ctx.lineTo(tickX, barY + 28);
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = row.color;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(valueX, barY - 4);
+        ctx.lineTo(valueX, barY + 34);
+        ctx.stroke();
+
+        ctx.fillStyle = '#FFF';
+        ctx.beginPath();
+        ctx.arc(valueX, barY - 8, 5, 0, 6.28);
+        ctx.fill();
+
+        ctx.fillStyle = '#FFF';
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText(`${row.label}: ${Math.round(value)}  | Target ${zone.min}-${zone.max}`, canvas.width / 2 - 212, row.y - 28);
+
+        // Move status below each bar to avoid colliding with value/target text.
+        ctx.fillStyle = inZone ? '#00FF88' : '#FFB347';
+        ctx.font = 'bold 14px Arial';
+        ctx.fillText(inZone ? 'AMAN' : 'BELUM AMAN', canvas.width / 2 - 212, row.y + 26);
+
+        const plusBtn = { x: canvas.width / 2 + 120, y: row.y - 26, w: 54, h: 42 };
+        const minusBtn = { x: canvas.width / 2 + 186, y: row.y - 26, w: 54, h: 42 };
+        ctx.fillStyle = '#1E90FF';
+        ctx.fillRect(plusBtn.x, plusBtn.y, plusBtn.w, plusBtn.h);
+        ctx.fillRect(minusBtn.x, minusBtn.y, minusBtn.w, minusBtn.h);
+        ctx.strokeStyle = '#FFF';
+        ctx.strokeRect(plusBtn.x, plusBtn.y, plusBtn.w, plusBtn.h);
+        ctx.strokeRect(minusBtn.x, minusBtn.y, minusBtn.w, minusBtn.h);
+        ctx.fillStyle = '#FFF';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 22px Arial';
+        ctx.fillText('+', plusBtn.x + (plusBtn.w / 2), plusBtn.y + 28);
+        ctx.fillText('-', minusBtn.x + (minusBtn.w / 2), minusBtn.y + 28);
+      });
+
+      const progressRatio = Math.max(0, Math.min(1, reactorStableSteps / Math.max(1, reactorRequiredStableSteps)));
+      const progressX = canvas.width / 2 - 250;
+      const progressY = 448;
+      const progressW = 500;
+      const progressH = 14;
+
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Langkah stabil: ${reactorStableSteps}/${reactorRequiredStableSteps}`, progressX, progressY - 8);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#9FC4FF';
+      ctx.fillText('Target reset tiap langkah', progressX + progressW, progressY - 8);
+
+      ctx.fillStyle = '#1D2430';
+      ctx.fillRect(progressX, progressY, progressW, progressH);
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(progressX, progressY, progressW, progressH);
+
+      const progressFill = progressW * progressRatio;
+      const progGrad = ctx.createLinearGradient(progressX, progressY, progressX + progressW, progressY);
+      progGrad.addColorStop(0, '#36D1DC');
+      progGrad.addColorStop(1, '#5BFF8A');
+      ctx.fillStyle = progGrad;
+      ctx.fillRect(progressX, progressY, progressFill, progressH);
+      drawHUD();
+    }
     function drawArtifactInfo() { ctx.fillStyle = 'rgba(0,0,0,0.95)'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 30px Arial'; ctx.textAlign='center'; ctx.fillText("ARTEFAK DITEMUKAN!", canvas.width/2, 100); ctx.beginPath(); ctx.arc(canvas.width/2, 250, 100, 0, 6.28); ctx.fillStyle='#FFD700'; ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = '20px Arial'; const text = activeFragment.data.detail; const words = text.split(' '); let line = ''; let y = 400; for(let n = 0; n < words.length; n++) { let testLine = line + words[n] + ' '; if(ctx.measureText(testLine).width > 600 && n > 0) { ctx.fillText(line, canvas.width/2, y); line = ' ' + words[n] + ' '; y += 30; } else { line = testLine; } } ctx.fillText(line, canvas.width/2, y); ctx.fillStyle = '#4CAF50'; ctx.beginPath(); ctx.roundRect(canvas.width/2 - 100, canvas.height - 100, 200, 50, 25); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Arial'; ctx.fillText("LANJUT", canvas.width/2, canvas.height - 68); ctx.font = '16px Arial'; ctx.fillStyle='#AAA'; ctx.fillText(`Otomatis lanjut dalam ${Math.ceil(artifactInfoTimer)}s`, canvas.width/2, canvas.height - 20); }
     function drawUpgradeScreen() { if (images.upgradeBg && images.upgradeBg.complete && images.upgradeBg.naturalWidth !== 0) { ctx.drawImage(images.upgradeBg, 0, 0, canvas.width, canvas.height); } else { ctx.fillStyle = '#000033'; ctx.fillRect(0,0,canvas.width, canvas.height); } ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 40px Arial'; ctx.textAlign='center'; ctx.shadowColor = 'black'; ctx.shadowBlur = 10; ctx.fillText("UPGRADE PESAWAT!", canvas.width/2, 150); ctx.fillStyle = '#FFF'; ctx.font = '24px Arial'; ctx.fillText("Senjata Pesawat Ditingkatkan", canvas.width/2, 200); let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, canvas.width/2 - 100, canvas.height/2 - 100, 200, 200); } ctx.font = '18px Arial'; ctx.fillStyle='#AAA'; ctx.fillText(`Lanjut dalam ${Math.ceil(upgradeTimer)}...`, canvas.width/2, 500); ctx.shadowBlur = 0; }
     function drawReadingPhase() { const planet = planets[currentPlanetIndex]; const grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, '#111'); grad.addColorStop(1, '#000'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); ctx.fillStyle = 'rgba(20, 20, 40, 0.9)'; ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(50, 50, canvas.width - 100, canvas.height - 180, 20); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center'; ctx.fillText(`FAKTA UNIK: ${planet.name.toUpperCase()}`, canvas.width/2, 100); ctx.fillStyle = readingTimer < 10 ? '#FF4500' : '#00BFFF'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'right'; ctx.fillText(`Waktu Baca: ${Math.ceil(readingTimer)}s`, canvas.width - 70, 100); ctx.fillStyle = '#FFF'; ctx.font = '18px Arial'; ctx.textAlign = 'left'; let yPos = 160; const maxWidth = canvas.width - 140; infoFragments.forEach((f, idx) => { const text = `${idx+1}. ${f.data.detail}`; const words = text.split(' '); let line = ''; for(let n=0; n<words.length; n++) { const testLine = line + words[n] + ' '; if(ctx.measureText(testLine).width > maxWidth && n > 0) { ctx.fillText(line, 70, yPos); line = '   ' + words[n] + ' '; yPos += 25; } else { line = testLine; } } ctx.fillText(line, 70, yPos); yPos += 35; }); const btnW = 200, btnH = 50, btnX = canvas.width/2 - btnW/2, btnY = canvas.height - 100; const pulse = Math.abs(Math.sin(Date.now() / 300)) * 5; ctx.fillStyle = '#4CAF50'; ctx.beginPath(); ctx.roundRect(btnX - pulse/2, btnY - pulse/2, btnW + pulse, btnH + pulse, 25); ctx.fill(); ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center'; ctx.fillText("SIAP TEMPUR", canvas.width/2, btnY + 32); drawHUD(); }
@@ -2672,6 +3801,11 @@
       else if(gameState === GameState.EXCAVATION) { drawExcavation(); }
       else if(gameState === GameState.SIGNAL) { updateSignal(safeDt); drawSignal(); }
       else if(gameState === GameState.DRILLING) { updateDrill(safeDt); drawDrilling(); }
+      else if(gameState === GameState.GENERATOR) { drawGenerator(); }
+      else if(gameState === GameState.SPECTROMETER) { drawSpectrometer(); }
+      else if(gameState === GameState.SENSOR_CIRCUIT) { drawSensorCircuit(); }
+      else if(gameState === GameState.MICROSCOPE) { drawMicroscope(); }
+      else if(gameState === GameState.REACTOR) { drawReactor(); }
       else if(gameState === GameState.LEAVING_PLANET) { updateLeavingPlanet(safeDt); drawLeavingPlanet(); }
       else if(gameState === GameState.ARTIFACT_INFO) { updateArtifactInfo(safeDt); drawArtifactInfo(); }
       else if(gameState === GameState.READING) { updateReading(safeDt); drawReadingPhase(); }
