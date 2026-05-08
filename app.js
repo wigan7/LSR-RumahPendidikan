@@ -350,11 +350,52 @@
       ship1: "./assets/images/ship-level-1.png",
       ship2: "./assets/images/ship-level-2.png",
       ship3: "./assets/images/ship-level-3.png",
-      upgradeBg: "./assets/images/upgrade-bg.jpg"
+      upgradeBg: "./assets/images/upgrade-bg.jpg",
+      planetMerkurius: "./assets/images/planet-merkurius.png",
+      planetVenus: "./assets/images/planet-venus.png",
+      planetBumi: "./assets/images/planet-bumi.png",
+      planetMars: "./assets/images/planet-mars.png",
+      planetJupiter: "./assets/images/planet-jupiter.png",
+      planetSaturnus: "./assets/images/planet-saturnus.png",
+      planetUranus: "./assets/images/planet-uranus.png",
+      planetNeptunus: "./assets/images/planet-neptunus.png"
     };
 
     const images = {};
     for (let key in assets) { images[key] = new Image(); images[key].src = assets[key]; }
+
+    const planetSpriteKeyByName = {
+      Merkurius: 'planetMerkurius',
+      Venus: 'planetVenus',
+      Bumi: 'planetBumi',
+      Mars: 'planetMars',
+      Jupiter: 'planetJupiter',
+      Saturnus: 'planetSaturnus',
+      Uranus: 'planetUranus',
+      Neptunus: 'planetNeptunus'
+    };
+
+    function getPlanetSpriteImage(planetName) {
+      const key = planetSpriteKeyByName[planetName];
+      if (!key) return null;
+      return images[key] || null;
+    }
+
+    const planetVisualConfig = {
+      Merkurius: { roadmap: 26, approach: 620 },
+      Venus: { roadmap: 34, approach: 760 },
+      Bumi: { roadmap: 36, approach: 780 },
+      Mars: { roadmap: 30, approach: 680 },
+      // 4 planet terakhir memiliki cincin pada aset, jadi ukuran kanvas sprite dibuat lebih besar.
+      Jupiter: { roadmap: 56, approach: 980 },
+      Saturnus: { roadmap: 72, approach: 1120 },
+      Uranus: { roadmap: 58, approach: 920 },
+      Neptunus: { roadmap: 56, approach: 900 }
+    };
+
+    function getPlanetVisualSize(planetName) {
+      return planetVisualConfig[planetName] || { roadmap: 34, approach: 780 };
+    }
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -1528,12 +1569,22 @@
       const p = planets[currentPlanetIndex];
       const science = planetScienceFacts[p.name] || { temp: 'Data suhu belum tersedia', size: 'Data ukuran belum tersedia' };
       const progress = 1 - (approachTimer / 10);
-      const planetX = (canvas.width + 400) - (progress * 600);
+      const visualSize = getPlanetVisualSize(p.name);
+      const planetDiameter = visualSize.approach;
+      const halfPlanet = planetDiameter / 2;
+      const planetStartX = canvas.width + halfPlanet + 40;
+      const planetEndX = canvas.width - (halfPlanet * 0.55);
+      const planetX = planetStartX + ((planetEndX - planetStartX) * progress);
+      const planetImg = getPlanetSpriteImage(p.name);
 
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(planetX, canvas.height / 2, 400, 0, 6.28);
-      ctx.fill();
+      if (planetImg && planetImg.complete && planetImg.naturalWidth !== 0) {
+        ctx.drawImage(planetImg, planetX - (planetDiameter / 2), (canvas.height / 2) - (planetDiameter / 2), planetDiameter, planetDiameter);
+      } else {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(planetX, canvas.height / 2, 400, 0, 6.28);
+        ctx.fill();
+      }
 
       let sImg = images.ship0;
       if (shipLevel === 1) sImg = images.ship1;
@@ -1586,8 +1637,128 @@
       ctx.shadowBlur = 0;
       drawHUD();
     }
-    function drawLeavingPlanet() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const p = planets[currentPlanetIndex]; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height + 300, 400, 0, 6.28); ctx.fill(); let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; ctx.save(); ctx.translate(canvas.width/2, leavingShipY); if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, -ship.width/2, -ship.height/2, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(-ship.width/2, -ship.height/2, ship.width, ship.height); } ctx.restore(); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center'; ctx.fillText(`Meninggalkan Planet ${p.name}...`, canvas.width/2, 100); drawHUD(); }
-    function drawRoadmap() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const startX = 100, endX = canvas.width - 100, y = canvas.height / 2; ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.setLineDash([10, 10]); ctx.beginPath(); ctx.moveTo(startX, y); ctx.lineTo(endX, y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(startX - 50, y, 40, 0, 6.28); ctx.fill(); planets.forEach((p, i) => { const px = startX + (i * ((endX - startX) / (planets.length - 1))); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(px, y, 15 + (i*2), 0, 6.28); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText(p.name, px, y + 40); if (i === currentPlanetIndex) { ctx.strokeStyle = '#0F0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, y, 25 + (i*2), 0, 6.28); ctx.stroke(); } }); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4; ctx.fillText("PETA GALAKSI BIMASAKTI", canvas.width/2, 60); ctx.shadowBlur = 0; ctx.fillStyle = '#333'; ctx.fillRect(20, 20, 130, 50); ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, 130, 50); ctx.fillStyle = '#FFF'; ctx.font = 'bold 18px Arial'; ctx.fillText("KEMBALI", 85, 52); }
+    function drawLeavingPlanet() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach(s => {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, 6.28);
+        ctx.fill();
+      });
+
+      const p = planets[currentPlanetIndex];
+      const planetImg = getPlanetSpriteImage(p.name);
+      const leavingDiameter = Math.max(580, Math.round(getPlanetVisualSize(p.name).approach * 1.0));
+      const planetX = canvas.width / 2;
+      const planetY = canvas.height + (leavingDiameter * 0.32);
+
+      if (planetImg && planetImg.complete && planetImg.naturalWidth !== 0) {
+        ctx.drawImage(planetImg, planetX - (leavingDiameter / 2), planetY - (leavingDiameter / 2), leavingDiameter, leavingDiameter);
+      } else {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(planetX, planetY, leavingDiameter / 2, 0, 6.28);
+        ctx.fill();
+      }
+
+      let sImg = images.ship0;
+      if (shipLevel === 1) sImg = images.ship1;
+      if (shipLevel === 2) sImg = images.ship2;
+      if (shipLevel === 3) sImg = images.ship3;
+
+      ctx.save();
+      ctx.translate(canvas.width / 2, leavingShipY);
+      if (sImg && sImg.complete && sImg.naturalWidth !== 0) {
+        ctx.drawImage(sImg, -ship.width / 2, -ship.height / 2, ship.width, ship.height);
+      } else {
+        ctx.fillStyle = '#4A90E2';
+        ctx.fillRect(-ship.width / 2, -ship.height / 2, ship.width, ship.height);
+      }
+      ctx.restore();
+
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 28px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Meninggalkan Planet ${p.name}...`, canvas.width / 2, 100);
+      drawHUD();
+    }
+    function drawRoadmap() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach(s => {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, 6.28);
+        ctx.fill();
+      });
+
+      const startX = 100;
+      const endX = canvas.width - 100;
+      const y = canvas.height / 2;
+
+      ctx.strokeStyle = '#FFF';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(startX, y);
+      ctx.lineTo(endX, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(startX - 50, y, 40, 0, 6.28);
+      ctx.fill();
+
+      planets.forEach((p, i) => {
+        const px = startX + (i * ((endX - startX) / (planets.length - 1)));
+        const diameter = getPlanetVisualSize(p.name).roadmap;
+        const planetImg = getPlanetSpriteImage(p.name);
+        const labelOffset = Math.max(44, (diameter / 2) + 22);
+
+        if (planetImg && planetImg.complete && planetImg.naturalWidth !== 0) {
+          ctx.drawImage(planetImg, px - (diameter / 2), y - (diameter / 2), diameter, diameter);
+        } else {
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(px, y, diameter / 2, 0, 6.28);
+          ctx.fill();
+        }
+
+        ctx.fillStyle = '#FFF';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.name, px, y + labelOffset);
+
+        if (i === currentPlanetIndex) {
+          ctx.strokeStyle = '#0F0';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(px, y, (diameter / 2) + 10, 0, 6.28);
+          ctx.stroke();
+        }
+      });
+
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 30px Arial';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'black';
+      ctx.shadowBlur = 4;
+      ctx.fillText("PETA GALAKSI BIMASAKTI", canvas.width / 2, 60);
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#333';
+      ctx.fillRect(20, 20, 130, 50);
+      ctx.strokeStyle = '#FFF';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(20, 20, 130, 50);
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText("KEMBALI", 85, 52);
+    }
     function drawExploration() { const planet = planets[currentPlanetIndex]; const grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, planet.color); grad.addColorStop(1, '#000'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); envParticles.forEach(p => { if(planet.envType==='dust') ctx.fillStyle='rgba(200,100,50,0.5)'; else if(planet.envType==='heat') ctx.fillStyle='rgba(255,200,100,0.2)'; else ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 6.28); ctx.fill(); }); if(planet.envType==='heat') { ctx.fillStyle = `rgba(255,0,0,${0.1+Math.sin(Date.now()/500)*0.05})`; ctx.fillRect(0,0,canvas.width,canvas.height); } obstacles.forEach(o => { o.rot += (o.rs || 0); ctx.save(); ctx.translate(o.x + o.w/2, o.y + o.h/2); ctx.rotate(o.rot); const obstacleImg = images[o.img]; if (obstacleImg && obstacleImg.complete && obstacleImg.naturalWidth !== 0) { ctx.drawImage(obstacleImg, -o.w/2, -o.h/2, o.w, o.h); } else { ctx.fillStyle='#5C4033'; ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h); ctx.fillStyle='#3E2723'; ctx.beginPath(); ctx.arc(5,5,10,0,6.28); ctx.fill(); } ctx.restore(); }); oxygenTanks.forEach(t => { const f = Math.sin(Date.now()/300)*3; ctx.fillStyle = '#00BFFF'; ctx.beginPath(); ctx.roundRect(t.x-8, t.y-12+f, 16, 24, 4); ctx.fill(); ctx.fillStyle = '#E0F7FA'; ctx.fillRect(t.x-4, t.y-10+f, 4, 20); ctx.fillStyle = '#888'; ctx.fillRect(t.x-6, t.y-16+f, 12, 4); }); infoFragments.forEach(f => { if(!f.collected) { const p = Math.sin(f.pulse)*5; ctx.shadowBlur=15; ctx.shadowColor='#FFD700'; ctx.fillStyle='rgba(255,215,0,0.3)'; ctx.beginPath(); ctx.arc(f.x, f.y, 25+p, 0, 6.28); ctx.fill(); ctx.shadowBlur=0; ctx.fillStyle='#FFF'; ctx.beginPath(); ctx.arc(f.x, f.y, 10, 0, 6.28); ctx.fill(); } }); ctx.save(); ctx.translate(astronaut.x, astronaut.y); if(planet.envType==='wind') ctx.rotate(0.1); const charImg = (playerData.gender === 'male') ? images.exploreMale : images.exploreFemale; if (charImg.complete && charImg.naturalWidth !== 0) { ctx.drawImage(charImg, -astronaut.width/2, -astronaut.height/2, astronaut.width, astronaut.height); } else { ctx.fillStyle='#FFF'; ctx.fillRect(-15,-30,30,60); } if (isScanning && scanTarget) { ctx.strokeStyle = '#0F0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 40, -Math.PI/2, (-Math.PI/2) + (Math.PI*2 * (scanProgress/scanRequired))); ctx.stroke(); } ctx.restore(); if (currentPlanetIndex >= 4) { const gradient = ctx.createRadialGradient(astronaut.x, astronaut.y, 50, astronaut.x, astronaut.y, 250); gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(1, 'rgba(0,0,0,0.95)'); ctx.fillStyle = gradient; ctx.fillRect(0,0,canvas.width, canvas.height); } drawHUD(); ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.font='bold 20px Arial'; ctx.fillText(`Artefak: ${collectedFragments}/${totalFragments}`, canvas.width/2, 30); const oxygenPanelW = 150, oxygenPanelH = 22; const oxygenPanelX = canvas.width - oxygenPanelW - 150; const oxygenPanelY = 30; ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.roundRect(oxygenPanelX, oxygenPanelY, oxygenPanelW, oxygenPanelH, 5); ctx.fill(); const ow = (currentOxygen/100)*(oxygenPanelW-6); ctx.fillStyle = currentOxygen>20 ? '#00BFFF':'#F00'; ctx.beginPath(); ctx.roundRect(oxygenPanelX+3, oxygenPanelY+3, ow, oxygenPanelH-6, 3); ctx.fill(); ctx.fillStyle='#FFF'; ctx.font='bold 13px Arial'; ctx.textAlign='right'; ctx.fillText("OKSIGEN", oxygenPanelX-8, oxygenPanelY+16); if (scanTarget && !scanTarget.collected) { const btnX = astronaut.x; const btnY = astronaut.y - 80; const r = 40; ctx.beginPath(); ctx.moveTo(btnX, btnY); ctx.lineTo(scanTarget.x, scanTarget.y); ctx.strokeStyle = 'rgba(50,205,50,0.5)'; ctx.lineWidth=2; ctx.stroke(); ctx.beginPath(); ctx.arc(btnX, btnY, r, 0, 6.28); ctx.fillStyle = isScanButtonPressed ? '#32CD32' : 'rgba(0,255,0,0.6)'; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.stroke(); ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.font='bold 12px Arial'; ctx.fillText("TAHAN", btnX, btnY-5); ctx.fillText("SCAN", btnX, btnY+15); } if(collectedFragments > 0) { const startX = 20; const boxWidth = 260; const maxWidth = 240; const lineHeight = 16; let linesToDraw = []; ctx.font = '12px Arial'; infoFragments.forEach(f => { if(f.collected) { const words = f.data.short.split(' '); let line = '> '; for(let n = 0; n < words.length; n++) { const testLine = line + words[n] + ' '; const metrics = ctx.measureText(testLine); if (metrics.width > maxWidth && n > 0) { linesToDraw.push(line); line = '  ' + words[n] + ' '; } else { line = testLine; } } linesToDraw.push(line); linesToDraw.push(''); } }); const boxHeight = Math.min((linesToDraw.length * lineHeight) + 40, canvas.height - 150); ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.roundRect(10, 100, boxWidth, boxHeight, 10); ctx.fill(); ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle='#FFD700'; ctx.textAlign='left'; ctx.font='bold 14px Arial'; ctx.fillText("FAKTA DITEMUKAN:", 20, 125); ctx.fillStyle='#FFF'; ctx.font='12px Arial'; let yp = 150; for (let i = 0; i < linesToDraw.length; i++) { if (yp < 100 + boxHeight - 10) { ctx.fillText(linesToDraw[i], startX, yp); yp += lineHeight; } } } floatingTexts.forEach(t => { ctx.fillStyle = t.color; ctx.globalAlpha = t.life/60; ctx.font = 'bold 20px Arial'; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); ctx.globalAlpha=1.0; }); }
     function drawSignal() {
       const frameW = 400;
