@@ -3,10 +3,55 @@
         ctx: null,
         bgmNodes: [],
         bgmTimer: null,
+      battleBgm: null,
+      explorationBgm: null,
+      versusBgm: null,
+      menuBgm: null,
+      winBgm: null,
+      gameoverBgm: null,
       musicEnabled: true,
       sfxEnabled: true,
       currentTheme: null,
-        init: function() { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); },
+        init: function() {
+          window.AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (!this.ctx) this.ctx = new AudioContext();
+          if (!this.battleBgm) {
+            this.battleBgm = new Audio('./assets/audio/battle-theme.mp3');
+            this.battleBgm.loop = true;
+            this.battleBgm.preload = 'auto';
+            this.battleBgm.volume = 0.35;
+          }
+          if (!this.explorationBgm) {
+            this.explorationBgm = new Audio('./assets/audio/exploration-theme.mp3');
+            this.explorationBgm.loop = true;
+            this.explorationBgm.preload = 'auto';
+            this.explorationBgm.volume = 0.32;
+          }
+          if (!this.versusBgm) {
+            this.versusBgm = new Audio('./assets/audio/versus-theme.mp3');
+            this.versusBgm.loop = true;
+            this.versusBgm.preload = 'auto';
+            this.versusBgm.volume = 0.34;
+          }
+          if (!this.menuBgm) {
+            this.menuBgm = new Audio('./assets/audio/menu-theme.mp3');
+            this.menuBgm.loop = true;
+            this.menuBgm.preload = 'auto';
+            this.menuBgm.volume = 0.3;
+          }
+          if (!this.winBgm) {
+            this.winBgm = new Audio('./assets/audio/win-theme.mp3');
+            this.winBgm.loop = true;
+            this.winBgm.preload = 'auto';
+            this.winBgm.volume = 0.34;
+          }
+          if (!this.gameoverBgm) {
+            this.gameoverBgm = new Audio('./assets/audio/gameover-theme.mp3');
+            this.gameoverBgm.loop = true;
+            this.gameoverBgm.preload = 'auto';
+            this.gameoverBgm.volume = 0.32;
+          }
+        },
         resume: function() { if (this.ctx && this.ctx.state === 'suspended') { this.ctx.resume(); } if (!this.ctx) this.init(); },
       setMusicEnabled: function(enabled) {
         this.musicEnabled = !!enabled;
@@ -18,6 +63,7 @@
         else if (this.currentTheme === 'space') this.playSpaceTravelTheme();
         else if (this.currentTheme === 'battle') this.playBattleTheme();
         else if (this.currentTheme === 'adventure') this.playAdventureTheme();
+        else if (this.currentTheme === 'menu') this.playMenuTheme();
         else if (this.currentTheme === 'gameover') this.playGameOverTheme();
         else if (this.currentTheme === 'win') this.playWinTheme();
       },
@@ -28,369 +74,115 @@
             this.bgmNodes.forEach(node => { try { node.stop(); } catch(e){} });
             this.bgmNodes = [];
             if (this.bgmTimer) { clearTimeout(this.bgmTimer); this.bgmTimer = null; }
+            if (this.battleBgm) {
+              this.battleBgm.pause();
+              this.battleBgm.currentTime = 0;
+            }
+            if (this.explorationBgm) {
+              this.explorationBgm.pause();
+              this.explorationBgm.currentTime = 0;
+            }
+            if (this.versusBgm) {
+              this.versusBgm.pause();
+              this.versusBgm.currentTime = 0;
+            }
+            if (this.menuBgm) {
+              this.menuBgm.pause();
+              this.menuBgm.currentTime = 0;
+            }
+            if (this.winBgm) {
+              this.winBgm.pause();
+              this.winBgm.currentTime = 0;
+            }
+            if (this.gameoverBgm) {
+              this.gameoverBgm.pause();
+              this.gameoverBgm.currentTime = 0;
+            }
+        },
+        playMenuTheme: function() {
+            this.currentTheme = 'menu';
+            if (!this.musicEnabled) return;
+            if (!this.menuBgm) this.init();
+          if (this.menuBgm && !this.menuBgm.paused) return;
+            this.stopBGM();
+            if (!this.menuBgm) return;
+            this.menuBgm.currentTime = 0;
+            const playPromise = this.menuBgm.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {});
+            }
         },
         playAdventureTheme: function() {
-        this.currentTheme = 'adventure';
-            if (!this.ctx) return;
+            this.currentTheme = 'adventure';
+            if (!this.musicEnabled) return;
+            if (!this.explorationBgm) this.init();
             this.stopBGM();
-        if (!this.musicEnabled) return;
-            
-            // 1. ATMOSPHERE PAD (Kalem & Luar Angkasa)
-            // Menggunakan Triangle wave untuk suara yang lebih lembut dan harmonis
-            const pad1 = this.ctx.createOscillator();
-            const pad2 = this.ctx.createOscillator();
-            const padGain = this.ctx.createGain();
-            
-            // Nada dasar C3 dan G3 (Perfect Fifth) - Harmoni yang stabil dan damai
-            pad1.type = 'triangle'; 
-            pad1.frequency.value = 130.81; // C3
-            
-            pad2.type = 'triangle';
-            pad2.frequency.value = 196.00; // G3
-            
-            // LFO untuk memberikan efek "mengalun" lembut (seperti ombak luar angkasa)
-            const lfo = this.ctx.createOscillator();
-            lfo.type = 'sine';
-            lfo.frequency.value = 0.2; // Sangat lambat
-            const lfoGain = this.ctx.createGain();
-            lfoGain.gain.value = 0.05; // Modulasi volume tipis
-            
-            lfo.connect(lfoGain);
-            lfoGain.connect(padGain.gain);
-            
-            pad1.connect(padGain);
-            pad2.connect(padGain);
-            padGain.connect(this.ctx.destination);
-            
-            padGain.gain.value = 0.08; // Volume background pelan dan nyaman
-            
-            pad1.start();
-            pad2.start();
-            lfo.start();
-            this.bgmNodes.push(pad1, pad2, lfo);
-
-            // 2. MELODY SEQUENCE (Semangat & Uplifting)
-            // Melodi C Major Arpeggio yang ceria dengan suara seperti lonceng (Sine)
-            const sequence = [
-                { f: 523.25, d: 0.2 }, // C5
-                { f: 659.25, d: 0.2 }, // E5
-                { f: 783.99, d: 0.2 }, // G5
-                { f: 1046.50, d: 0.4 }, // C6 (Tinggi semangat)
-                { f: 783.99, d: 0.2 }, // G5
-                { f: 659.25, d: 0.4 }, // E5
-            ];
-            
-            let noteIndex = 0;
-            const playNextNote = () => {
-                if (this.ctx.state === 'suspended') return;
-                const note = sequence[noteIndex % sequence.length];
-                
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                osc.type = 'sine'; // Suara "tring" bulat, tidak tajam
-                osc.frequency.value = note.f;
-                
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                
-                const now = this.ctx.currentTime;
-                // Envelope suara lembut (fade in sangat cepat, fade out perlahan)
-                gain.gain.setValueAtTime(0.0, now);
-                gain.gain.linearRampToValueAtTime(0.05, now + 0.05); 
-                gain.gain.exponentialRampToValueAtTime(0.001, now + note.d);
-                
-                osc.start(now);
-                osc.stop(now + note.d);
-                
-                // Jeda sedikit antar nada agar iramanya santai tapi tetap jalan
-                this.bgmTimer = setTimeout(playNextNote, note.d * 1000 + 150); 
-                noteIndex++;
-            };
-            playNextNote();
+            if (!this.explorationBgm) return;
+            this.explorationBgm.currentTime = 0;
+            const playPromise = this.explorationBgm.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {});
+            }
         },
         playSpaceTravelTheme: function() {
             this.currentTheme = 'space';
-            if (!this.ctx) return;
-            this.stopBGM();
             if (!this.musicEnabled) return;
-
-            const drone = this.ctx.createOscillator();
-            const droneGain = this.ctx.createGain();
-            drone.type = 'sawtooth';
-            drone.frequency.value = 82.41;
-            drone.connect(droneGain);
-            droneGain.connect(this.ctx.destination);
-            droneGain.gain.value = 0.028;
-            drone.start();
-            this.bgmNodes.push(drone);
-
-            const pulseLfo = this.ctx.createOscillator();
-            const pulseLfoGain = this.ctx.createGain();
-            pulseLfo.type = 'square';
-            pulseLfo.frequency.value = 4.2;
-            pulseLfoGain.gain.value = 0.012;
-            pulseLfo.connect(pulseLfoGain);
-            pulseLfoGain.connect(droneGain.gain);
-            pulseLfo.start();
-            this.bgmNodes.push(pulseLfo);
-
-            const sequence = [
-              { f: 196.0, d: 0.09, g: 0.048 },
-              { f: 246.94, d: 0.09, g: 0.044 },
-              { f: 293.66, d: 0.11, g: 0.052 },
-              { f: 329.63, d: 0.12, g: 0.046 },
-              { f: 246.94, d: 0.09, g: 0.044 },
-              { f: 196.0, d: 0.12, g: 0.05 }
-            ];
-            let idx = 0;
-
-            const playNext = () => {
-              if (!this.musicEnabled || this.ctx.state === 'suspended') return;
-              const n = sequence[idx % sequence.length];
-              const now = this.ctx.currentTime;
-
-              const osc = this.ctx.createOscillator();
-              const gain = this.ctx.createGain();
-              osc.type = 'triangle';
-              osc.frequency.value = n.f;
-              osc.connect(gain);
-              gain.connect(this.ctx.destination);
-
-              gain.gain.setValueAtTime(0.001, now);
-              gain.gain.linearRampToValueAtTime(n.g, now + 0.008);
-              gain.gain.exponentialRampToValueAtTime(0.001, now + n.d);
-
-              osc.start(now);
-              osc.stop(now + n.d);
-
-              this.bgmTimer = setTimeout(playNext, n.d * 1000 + 65);
-              idx += 1;
-            };
-            playNext();
+            if (!this.battleBgm) this.init();
+            this.stopBGM();
+            if (!this.battleBgm) return;
+            this.battleBgm.currentTime = 0;
+            const playPromise = this.battleBgm.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {});
+            }
         },
         playBattleTheme: function() {
             this.currentTheme = 'battle';
-            if (!this.ctx) return;
-            this.stopBGM();
             if (!this.musicEnabled) return;
-
-            const bass = this.ctx.createOscillator();
-            const bassGain = this.ctx.createGain();
-            bass.type = 'square';
-            bass.frequency.value = 98.0;
-            bass.connect(bassGain);
-            bassGain.connect(this.ctx.destination);
-            bassGain.gain.value = 0.032;
-            bass.start();
-            this.bgmNodes.push(bass);
-
-            const bassLfo = this.ctx.createOscillator();
-            const bassLfoGain = this.ctx.createGain();
-            bassLfo.type = 'triangle';
-            bassLfo.frequency.value = 5.5;
-            bassLfoGain.gain.value = 0.014;
-            bassLfo.connect(bassLfoGain);
-            bassLfoGain.connect(bassGain.gain);
-            bassLfo.start();
-            this.bgmNodes.push(bassLfo);
-
-            const sequence = [
-              { f: 392.0, d: 0.11, g: 0.055 },
-              { f: 369.99, d: 0.11, g: 0.05 },
-              { f: 329.63, d: 0.1, g: 0.048 },
-              { f: 293.66, d: 0.13, g: 0.058 },
-              { f: 329.63, d: 0.1, g: 0.05 },
-              { f: 369.99, d: 0.13, g: 0.055 }
-            ];
-            let idx = 0;
-
-            const playHit = () => {
-              if (!this.musicEnabled || this.ctx.state === 'suspended') return;
-              const n = sequence[idx % sequence.length];
-              const now = this.ctx.currentTime;
-
-              const osc = this.ctx.createOscillator();
-              const gain = this.ctx.createGain();
-              osc.type = 'sawtooth';
-              osc.frequency.value = n.f;
-              osc.connect(gain);
-              gain.connect(this.ctx.destination);
-
-              gain.gain.setValueAtTime(0.001, now);
-              gain.gain.linearRampToValueAtTime(n.g, now + 0.01);
-              gain.gain.exponentialRampToValueAtTime(0.001, now + n.d);
-
-              osc.start(now);
-              osc.stop(now + n.d);
-
-              this.bgmTimer = setTimeout(playHit, n.d * 1000 + 55);
-              idx += 1;
-            };
-            playHit();
+            if (!this.versusBgm) this.init();
+            this.stopBGM();
+            if (!this.versusBgm) return;
+            this.versusBgm.currentTime = 0;
+            const playPromise = this.versusBgm.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {});
+            }
         },
         playMultiplayerTheme: function() {
             this.currentTheme = 'multiplayer';
-            if (!this.ctx) return;
-            this.stopBGM();
             if (!this.musicEnabled) return;
-
-            const bass = this.ctx.createOscillator();
-            const bassGain = this.ctx.createGain();
-            bass.type = 'sawtooth';
-            bass.frequency.value = 92.5;
-            bass.connect(bassGain);
-            bassGain.connect(this.ctx.destination);
-            bassGain.gain.value = 0.04;
-            bass.start();
-            this.bgmNodes.push(bass);
-
-            const pulse = this.ctx.createOscillator();
-            const pulseGain = this.ctx.createGain();
-            pulse.type = 'square';
-            pulse.frequency.value = 2.2;
-            pulse.connect(pulseGain);
-            pulseGain.connect(bassGain.gain);
-            pulseGain.gain.value = 0.01;
-            pulse.start();
-            this.bgmNodes.push(pulse);
-
-            const sequence = [
-              { f: 392.0, d: 0.14, g: 0.055 },
-              { f: 466.16, d: 0.14, g: 0.05 },
-              { f: 523.25, d: 0.18, g: 0.06 },
-              { f: 466.16, d: 0.14, g: 0.05 },
-              { f: 392.0, d: 0.14, g: 0.055 },
-              { f: 329.63, d: 0.18, g: 0.05 }
-            ];
-            let idx = 0;
-
-            const playHit = () => {
-              if (!this.musicEnabled || this.ctx.state === 'suspended') return;
-              const n = sequence[idx % sequence.length];
-              const now = this.ctx.currentTime;
-
-              const osc = this.ctx.createOscillator();
-              const gain = this.ctx.createGain();
-              osc.type = 'square';
-              osc.frequency.value = n.f;
-              osc.connect(gain);
-              gain.connect(this.ctx.destination);
-
-              gain.gain.setValueAtTime(0.001, now);
-              gain.gain.linearRampToValueAtTime(n.g, now + 0.01);
-              gain.gain.exponentialRampToValueAtTime(0.001, now + n.d);
-
-              osc.start(now);
-              osc.stop(now + n.d);
-
-              this.bgmTimer = setTimeout(playHit, n.d * 1000 + 80);
-              idx += 1;
-            };
-            playHit();
+            if (!this.versusBgm) this.init();
+            this.stopBGM();
+            if (!this.versusBgm) return;
+            this.versusBgm.currentTime = 0;
+            const playPromise = this.versusBgm.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {});
+            }
         },
         playGameOverTheme: function() {
             this.currentTheme = 'gameover';
-            if (!this.ctx) return;
-            this.stopBGM();
             if (!this.musicEnabled) return;
-
-            const drone = this.ctx.createOscillator();
-            const droneGain = this.ctx.createGain();
-            drone.type = 'triangle';
-            drone.frequency.value = 55.0;
-            drone.connect(droneGain);
-            droneGain.connect(this.ctx.destination);
-            droneGain.gain.value = 0.03;
-            drone.start();
-            this.bgmNodes.push(drone);
-
-            const sequence = [
-              { f: 164.81, d: 0.3, g: 0.03 },
-              { f: 146.83, d: 0.4, g: 0.028 },
-              { f: 130.81, d: 0.45, g: 0.026 },
-              { f: 98.0, d: 0.55, g: 0.03 }
-            ];
-            let idx = 0;
-
-            const playNext = () => {
-              if (!this.musicEnabled || this.ctx.state === 'suspended') return;
-              const n = sequence[idx % sequence.length];
-              const now = this.ctx.currentTime;
-
-              const osc = this.ctx.createOscillator();
-              const gain = this.ctx.createGain();
-              osc.type = 'sine';
-              osc.frequency.value = n.f;
-              osc.connect(gain);
-              gain.connect(this.ctx.destination);
-
-              gain.gain.setValueAtTime(0.001, now);
-              gain.gain.linearRampToValueAtTime(n.g, now + 0.04);
-              gain.gain.exponentialRampToValueAtTime(0.001, now + n.d);
-
-              osc.start(now);
-              osc.stop(now + n.d);
-
-              this.bgmTimer = setTimeout(playNext, n.d * 1000 + 180);
-              idx += 1;
-            };
-            playNext();
+            if (!this.gameoverBgm) this.init();
+            this.stopBGM();
+            if (!this.gameoverBgm) return;
+            this.gameoverBgm.currentTime = 0;
+            const playPromise = this.gameoverBgm.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {});
+            }
         },
         playWinTheme: function() {
             this.currentTheme = 'win';
-            if (!this.ctx) return;
-            this.stopBGM();
             if (!this.musicEnabled) return;
-
-            const pad1 = this.ctx.createOscillator();
-            const pad2 = this.ctx.createOscillator();
-            const padGain = this.ctx.createGain();
-            pad1.type = 'triangle';
-            pad2.type = 'triangle';
-            pad1.frequency.value = 261.63;
-            pad2.frequency.value = 392.0;
-            pad1.connect(padGain);
-            pad2.connect(padGain);
-            padGain.connect(this.ctx.destination);
-            padGain.gain.value = 0.04;
-            pad1.start();
-            pad2.start();
-            this.bgmNodes.push(pad1, pad2);
-
-            const sequence = [
-              { f: 523.25, d: 0.2, g: 0.05 },
-              { f: 659.25, d: 0.2, g: 0.048 },
-              { f: 783.99, d: 0.28, g: 0.052 },
-              { f: 1046.5, d: 0.36, g: 0.055 },
-              { f: 783.99, d: 0.22, g: 0.05 },
-              { f: 659.25, d: 0.28, g: 0.048 }
-            ];
-            let idx = 0;
-
-            const playNext = () => {
-              if (!this.musicEnabled || this.ctx.state === 'suspended') return;
-              const n = sequence[idx % sequence.length];
-              const now = this.ctx.currentTime;
-
-              const osc = this.ctx.createOscillator();
-              const gain = this.ctx.createGain();
-              osc.type = 'sine';
-              osc.frequency.value = n.f;
-              osc.connect(gain);
-              gain.connect(this.ctx.destination);
-
-              gain.gain.setValueAtTime(0.001, now);
-              gain.gain.linearRampToValueAtTime(n.g, now + 0.03);
-              gain.gain.exponentialRampToValueAtTime(0.001, now + n.d);
-
-              osc.start(now);
-              osc.stop(now + n.d);
-
-              this.bgmTimer = setTimeout(playNext, n.d * 1000 + 120);
-              idx += 1;
-            };
-            playNext();
+            if (!this.winBgm) this.init();
+            this.stopBGM();
+            if (!this.winBgm) return;
+            this.winBgm.currentTime = 0;
+            const playPromise = this.winBgm.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {});
+            }
         },
         play: function(type) {
             if (!this.ctx) return;
@@ -426,25 +218,15 @@
       alien1: "./assets/images/alien-1.png",
       alien2: "./assets/images/alien-2.png",
       alien3: "./assets/images/alien-3.png",
-      asteroid1: "./assets/images/asteroid-1.png",
-      asteroid2: "./assets/images/asteroid-2.png",
-      asteroid3CType: "./assets/images/asteroid-3-c-type.png",
       asteroid4SType: "./assets/images/asteroid-4-s-type.png",
-      asteroid5MType: "./assets/images/asteroid-5-m-type.png",
-      asteroid6FragmentSpike: "./assets/images/asteroid-6-fragment-spike.png",
-      asteroid7RubblePile: "./assets/images/asteroid-7-rubble-pile.png",
-      asteroid8IcyDebris: "./assets/images/asteroid-8-icy-debris.png",
+      asteroid4STypeCritical: "./assets/images/asteroid-4-s-type-critical.png",
       asteroidElite1ArmoredMetallic: "./assets/images/asteroid-elite-1-armored-metallic.png",
-      asteroidElite1ArmoredMetallicRetak: "./assets/images/asteroid-elite-1-armored-metallic-retak.png",
       asteroidElite1ArmoredMetallicCritical: "./assets/images/asteroid-elite-1-armored-metallic-critical.png",
       asteroidElite2FracturedSpike: "./assets/images/asteroid-elite-2-fractured-spike.png",
-      asteroidElite2FracturedSpikeRetak: "./assets/images/asteroid-elite-2-fractured-spike-retak.png",
       asteroidElite2FracturedSpikeCritical: "./assets/images/asteroid-elite-2-fractured-spike-critical.png",
       asteroidElite3CarbonFortress: "./assets/images/asteroid-elite-3-carbon-fortress.png",
-      asteroidElite3CarbonFortressRetak: "./assets/images/asteroid-elite-3-carbon-fortress-retak.png",
       asteroidElite3CarbonFortressCritical: "./assets/images/asteroid-elite-3-carbon-fortress-critical.png",
       asteroidElite4IcyHybrid: "./assets/images/asteroid-elite-4-icy-hybrid.png",
-      asteroidElite4IcyHybridRetak: "./assets/images/asteroid-elite-4-icy-hybrid-retak.png",
       asteroidElite4IcyHybridCritical: "./assets/images/asteroid-elite-4-icy-hybrid-critical.png",
       ship0: "./assets/images/ship-level-0.png",
       ship1: "./assets/images/ship-level-1.png",
@@ -515,8 +297,8 @@
       }, duration);
     }
 
-    function openCharSelect() { SoundManager.play('click'); document.getElementById('main-menu').style.display = 'none'; document.getElementById('char-select-menu').style.display = 'flex'; }
-    function closeCharSelect() { SoundManager.play('click'); document.getElementById('char-select-menu').style.display = 'none'; document.getElementById('main-menu').style.display = 'flex'; }
+    function openCharSelect() { SoundManager.play('click'); SoundManager.playMenuTheme(); document.getElementById('main-menu').style.display = 'none'; document.getElementById('char-select-menu').style.display = 'flex'; }
+    function closeCharSelect() { SoundManager.play('click'); SoundManager.playMenuTheme(); document.getElementById('char-select-menu').style.display = 'none'; document.getElementById('main-menu').style.display = 'flex'; }
     function chooseCharacter(gender) { SoundManager.play('click'); playerData.gender = gender; document.getElementById('current-char-img').src = (gender === 'male') ? assets.charSelectMale : assets.charSelectFemale; closeCharSelect(); }
 
     const badWordsList = ["anjing", "bangsat", "babi", "monyet", "kunyuk", "bajingan", "asu", "kontol", "memek", "ngentot", "pantek", "puki", "kimak", "jancok", "cuk", "coeg", "njir", "kampret", "tolol", "bego", "goblok", "idiot", "setan", "iblis", "lonte", "pelacur", "bencong", "banci", "sialan", "brengsek", "taik", "tai", "bgst", "anjg", "kntl", "mmk", "anying", "jembut", "toket", "itil", "ngewe", "sange", "pepek", "peler", "titit", "entot", "bokep", "porno"];
@@ -536,6 +318,7 @@
 
     function openMinigameTestMenu() {
       SoundManager.play('click');
+      SoundManager.playMenuTheme();
       const panel = document.getElementById('minigame-test-menu');
       const select = document.getElementById('test-planet-select');
       if (!panel || !select) return;
@@ -556,6 +339,7 @@
 
     function closeMinigameTestMenu() {
       SoundManager.play('click');
+      SoundManager.playMenuTheme();
       const panel = document.getElementById('minigame-test-menu');
       if (panel) panel.style.display = 'none';
     }
@@ -625,7 +409,6 @@
       mudah: {
         travelDuration: 22,
         asteroidSpawnMult: 0.78,
-        eliteSpawnMult: 0.75,
         asteroidSpeedMult: 0.85,
         asteroidHpBonus: 0,
         collisionDamage: 8,
@@ -649,7 +432,6 @@
       sedang: {
         travelDuration: 20,
         asteroidSpawnMult: 1,
-        eliteSpawnMult: 1,
         asteroidSpeedMult: 1,
         asteroidHpBonus: 0,
         collisionDamage: 10,
@@ -673,7 +455,6 @@
       sulit: {
         travelDuration: 18,
         asteroidSpawnMult: 1.22,
-        eliteSpawnMult: 1.35,
         asteroidSpeedMult: 1.2,
         asteroidHpBonus: 1,
         collisionDamage: 12,
@@ -1001,135 +782,165 @@
     }
 
     function getBaseAsteroidPool(planetIndex) {
-      if (planetIndex <= 3) {
-        // Inner solar system: stony/silicaceous and metallic fragments are more common.
-        return [
-          { key: 'asteroid1', weight: 18, hpMult: 1.0, sizeMult: 1.0, speedMult: 1.02, scoreBonusMult: 1.0, scienceLabel: 'S-type (batuan silikat)' },
-          { key: 'asteroid2', weight: 15, hpMult: 1.02, sizeMult: 1.0, speedMult: 1.0, scoreBonusMult: 1.0, scienceLabel: 'S-type (batuan silikat)' },
-          { key: 'asteroid4SType', weight: 20, hpMult: 1.08, sizeMult: 1.02, speedMult: 1.0, scoreBonusMult: 1.06, scienceLabel: 'S-type (batuan silikat)' },
-          { key: 'asteroid5MType', weight: 14, hpMult: 1.22, sizeMult: 1.06, speedMult: 0.94, scoreBonusMult: 1.18, scienceLabel: 'M-type (logam nikel-besi)' },
-          { key: 'asteroid6FragmentSpike', weight: 17, hpMult: 1.1, sizeMult: 1.04, speedMult: 1.08, scoreBonusMult: 1.1, scienceLabel: 'Fragmen tumbukan' },
-          { key: 'asteroid7RubblePile', weight: 10, hpMult: 0.92, sizeMult: 1.1, speedMult: 0.96, scoreBonusMult: 1.02, scienceLabel: 'Rubble pile (gugusan batu longgar)' }
-        ];
-      }
-
-      // Outer solar system: more carbonaceous and icy debris fragments.
-      return [
-        { key: 'asteroid1', weight: 10, hpMult: 1.0, sizeMult: 1.0, speedMult: 1.0, scoreBonusMult: 1.0, scienceLabel: 'S-type (batuan silikat)' },
-        { key: 'asteroid2', weight: 8, hpMult: 1.0, sizeMult: 1.0, speedMult: 1.0, scoreBonusMult: 1.0, scienceLabel: 'S-type (batuan silikat)' },
-        { key: 'asteroid3CType', weight: 24, hpMult: 0.95, sizeMult: 1.08, speedMult: 0.96, scoreBonusMult: 1.06, scienceLabel: 'C-type (karbonan gelap)' },
-        { key: 'asteroid7RubblePile', weight: 18, hpMult: 0.9, sizeMult: 1.12, speedMult: 0.94, scoreBonusMult: 1.04, scienceLabel: 'Rubble pile (gugusan batu longgar)' },
-        { key: 'asteroid8IcyDebris', weight: 18, hpMult: 0.88, sizeMult: 1.06, speedMult: 1.04, scoreBonusMult: 1.1, scienceLabel: 'Fragmen es-kotor' },
-        { key: 'asteroid6FragmentSpike', weight: 12, hpMult: 1.08, sizeMult: 1.04, speedMult: 1.06, scoreBonusMult: 1.08, scienceLabel: 'Fragmen tumbukan' },
-        { key: 'asteroid5MType', weight: 10, hpMult: 1.2, sizeMult: 1.06, speedMult: 0.93, scoreBonusMult: 1.16, scienceLabel: 'M-type (logam nikel-besi)' }
-      ];
-    }
-
-    function getEliteAsteroidPool(planetIndex) {
-      if (planetIndex <= 3) {
-        return [
-          {
-            key: 'asteroidElite1ArmoredMetallic',
-            damageSprites: { retak: 'asteroidElite1ArmoredMetallicRetak', critical: 'asteroidElite1ArmoredMetallicCritical' },
-            weight: 12,
-            hpMult: 1.65,
-            sizeMult: 1.22,
-            speedMult: 0.86,
-            scoreBonusMult: 1.55,
-            scienceLabel: 'Elite M-type berlapis (armored metallic)',
-            isElite: true
-          },
-          {
-            key: 'asteroidElite2FracturedSpike',
-            damageSprites: { retak: 'asteroidElite2FracturedSpikeRetak', critical: 'asteroidElite2FracturedSpikeCritical' },
-            weight: 9,
-            hpMult: 1.45,
-            sizeMult: 1.18,
-            speedMult: 0.98,
-            scoreBonusMult: 1.48,
-            scienceLabel: 'Elite fragmen tumbukan raksasa',
-            isElite: true
-          }
-        ];
-      }
-
-      return [
-        {
-          key: 'asteroidElite3CarbonFortress',
-          damageSprites: { retak: 'asteroidElite3CarbonFortressRetak', critical: 'asteroidElite3CarbonFortressCritical' },
-          weight: 11,
-          hpMult: 1.58,
-          sizeMult: 1.24,
-          speedMult: 0.84,
-          scoreBonusMult: 1.58,
-          scienceLabel: 'Elite C-type massif (carbon fortress)',
-          isElite: true
+      const variants = {
+        sType: {
+          key: 'asteroid4SType',
+          damageSprites: { retak: null, critical: 'asteroid4STypeCritical' },
+          hpMult: 1.08,
+          sizeMult: 1.02,
+          speedMult: 1.02,
+          scoreBonusMult: 1.06,
+          scienceLabel: 'S-type (batuan silikat)'
         },
-        {
+        mType: {
+          key: 'asteroidElite1ArmoredMetallic',
+          damageSprites: { retak: null, critical: 'asteroidElite1ArmoredMetallicCritical' },
+          hpMult: 1.16,
+          sizeMult: 1.08,
+          speedMult: 0.96,
+          scoreBonusMult: 1.12,
+          scienceLabel: 'M-type (kaya logam)'
+        },
+        fractured: {
+          key: 'asteroidElite2FracturedSpike',
+          damageSprites: { retak: null, critical: 'asteroidElite2FracturedSpikeCritical' },
+          hpMult: 1.12,
+          sizeMult: 1.07,
+          speedMult: 1.04,
+          scoreBonusMult: 1.1,
+          scienceLabel: 'Fragmen tumbukan (pecahan asteroid)'
+        },
+        cType: {
+          key: 'asteroidElite3CarbonFortress',
+          damageSprites: { retak: null, critical: 'asteroidElite3CarbonFortressCritical' },
+          hpMult: 1.2,
+          sizeMult: 1.12,
+          speedMult: 0.92,
+          scoreBonusMult: 1.14,
+          scienceLabel: 'C-type (karbon gelap)'
+        },
+        icy: {
           key: 'asteroidElite4IcyHybrid',
-          damageSprites: { retak: 'asteroidElite4IcyHybridRetak', critical: 'asteroidElite4IcyHybridCritical' },
-          weight: 10,
-          hpMult: 1.5,
-          sizeMult: 1.2,
-          speedMult: 0.9,
-          scoreBonusMult: 1.52,
-          scienceLabel: 'Elite hibrida es-logam',
-          isElite: true
+          damageSprites: { retak: null, critical: 'asteroidElite4IcyHybridCritical' },
+          hpMult: 1.1,
+          sizeMult: 1.1,
+          speedMult: 0.98,
+          scoreBonusMult: 1.1,
+          scienceLabel: 'Icy body (es + debu)'
         }
-      ];
+      };
+
+      const byEnvType = {
+        heat: [
+          { ...variants.sType, weight: 45 },
+          { ...variants.mType, weight: 24 },
+          { ...variants.fractured, weight: 18 },
+          { ...variants.cType, weight: 9 },
+          { ...variants.icy, weight: 4 }
+        ],
+        normal: [
+          { ...variants.sType, weight: 40 },
+          { ...variants.cType, weight: 24 },
+          { ...variants.mType, weight: 15 },
+          { ...variants.fractured, weight: 15 },
+          { ...variants.icy, weight: 6 }
+        ],
+        dust: [
+          { ...variants.fractured, weight: 34 },
+          { ...variants.sType, weight: 28 },
+          { ...variants.mType, weight: 20 },
+          { ...variants.cType, weight: 14 },
+          { ...variants.icy, weight: 4 }
+        ],
+        gas: [
+          { ...variants.cType, weight: 36 },
+          { ...variants.sType, weight: 22 },
+          { ...variants.icy, weight: 20 },
+          { ...variants.fractured, weight: 12 },
+          { ...variants.mType, weight: 10 }
+        ],
+        ice: [
+          { ...variants.icy, weight: 42 },
+          { ...variants.cType, weight: 28 },
+          { ...variants.sType, weight: 12 },
+          { ...variants.fractured, weight: 10 },
+          { ...variants.mType, weight: 8 }
+        ],
+        wind: [
+          { ...variants.icy, weight: 38 },
+          { ...variants.cType, weight: 30 },
+          { ...variants.fractured, weight: 18 },
+          { ...variants.sType, weight: 8 },
+          { ...variants.mType, weight: 6 }
+        ]
+      };
+
+      const safeIndex = Math.max(0, Math.min(planets.length - 1, planetIndex));
+      const envType = planets[safeIndex]?.envType || 'normal';
+      return byEnvType[envType] || byEnvType.normal;
     }
 
     function pickAsteroidVariant(planetIndex) {
-      const baseEliteChance = Math.max(0, Math.min(0.14, (planetIndex - 1) * 0.012));
-      const eliteChance = Math.max(0, Math.min(0.25, baseEliteChance * (gameBalance.eliteSpawnMult || 1)));
-      const elitePool = getEliteAsteroidPool(planetIndex);
-      if (planetIndex >= 2 && Math.random() < eliteChance) {
-        return pickWeightedAsteroidVariant(elitePool);
-      }
       return pickWeightedAsteroidVariant(getBaseAsteroidPool(planetIndex));
     }
 
-    function getExplorationObstaclePool(planetIndex, envType) {
-      if (planetIndex <= 3) {
-        return [
-          { key: 'asteroid1', weight: 10 },
-          { key: 'asteroid2', weight: 10 },
-          { key: 'asteroid4SType', weight: 30 },
-          { key: 'asteroid5MType', weight: 20 },
-          { key: 'asteroid6FragmentSpike', weight: 18 },
-          { key: 'asteroid7RubblePile', weight: 12 }
-        ];
-      }
+    function getExplorationObstaclePool(planetIndex) {
+      const byEnvType = {
+        heat: [
+          { key: 'asteroid4SType', weight: 44, sizeMin: 34, sizeMax: 52, strength: 1.08 },
+          { key: 'asteroidElite1ArmoredMetallic', weight: 28, sizeMin: 40, sizeMax: 62, strength: 1.14 },
+          { key: 'asteroidElite2FracturedSpike', weight: 18, sizeMin: 38, sizeMax: 58, strength: 1.12 },
+          { key: 'asteroidElite3CarbonFortress', weight: 7, sizeMin: 42, sizeMax: 64, strength: 1.18 },
+          { key: 'asteroidElite4IcyHybrid', weight: 3, sizeMin: 40, sizeMax: 60, strength: 1.09 }
+        ],
+        normal: [
+          { key: 'asteroid4SType', weight: 40, sizeMin: 34, sizeMax: 54, strength: 1.1 },
+          { key: 'asteroidElite3CarbonFortress', weight: 24, sizeMin: 40, sizeMax: 64, strength: 1.16 },
+          { key: 'asteroidElite1ArmoredMetallic', weight: 14, sizeMin: 40, sizeMax: 62, strength: 1.15 },
+          { key: 'asteroidElite2FracturedSpike', weight: 16, sizeMin: 38, sizeMax: 60, strength: 1.13 },
+          { key: 'asteroidElite4IcyHybrid', weight: 6, sizeMin: 38, sizeMax: 58, strength: 1.1 }
+        ],
+        dust: [
+          { key: 'asteroidElite2FracturedSpike', weight: 34, sizeMin: 40, sizeMax: 62, strength: 1.16 },
+          { key: 'asteroid4SType', weight: 30, sizeMin: 36, sizeMax: 56, strength: 1.12 },
+          { key: 'asteroidElite1ArmoredMetallic', weight: 18, sizeMin: 42, sizeMax: 64, strength: 1.17 },
+          { key: 'asteroidElite3CarbonFortress', weight: 14, sizeMin: 44, sizeMax: 66, strength: 1.18 },
+          { key: 'asteroidElite4IcyHybrid', weight: 4, sizeMin: 40, sizeMax: 62, strength: 1.12 }
+        ],
+        gas: [
+          { key: 'asteroidElite3CarbonFortress', weight: 36, sizeMin: 46, sizeMax: 72, strength: 1.2 },
+          { key: 'asteroid4SType', weight: 22, sizeMin: 38, sizeMax: 58, strength: 1.12 },
+          { key: 'asteroidElite4IcyHybrid', weight: 20, sizeMin: 44, sizeMax: 70, strength: 1.18 },
+          { key: 'asteroidElite2FracturedSpike', weight: 12, sizeMin: 40, sizeMax: 64, strength: 1.15 },
+          { key: 'asteroidElite1ArmoredMetallic', weight: 10, sizeMin: 42, sizeMax: 66, strength: 1.17 }
+        ],
+        ice: [
+          { key: 'asteroidElite4IcyHybrid', weight: 42, sizeMin: 46, sizeMax: 74, strength: 1.2 },
+          { key: 'asteroidElite3CarbonFortress', weight: 28, sizeMin: 44, sizeMax: 70, strength: 1.19 },
+          { key: 'asteroid4SType', weight: 12, sizeMin: 38, sizeMax: 58, strength: 1.12 },
+          { key: 'asteroidElite2FracturedSpike', weight: 10, sizeMin: 40, sizeMax: 62, strength: 1.14 },
+          { key: 'asteroidElite1ArmoredMetallic', weight: 8, sizeMin: 42, sizeMax: 64, strength: 1.16 }
+        ],
+        wind: [
+          { key: 'asteroidElite4IcyHybrid', weight: 38, sizeMin: 46, sizeMax: 72, strength: 1.2 },
+          { key: 'asteroidElite3CarbonFortress', weight: 30, sizeMin: 44, sizeMax: 70, strength: 1.19 },
+          { key: 'asteroidElite2FracturedSpike', weight: 18, sizeMin: 40, sizeMax: 64, strength: 1.16 },
+          { key: 'asteroid4SType', weight: 8, sizeMin: 38, sizeMax: 58, strength: 1.12 },
+          { key: 'asteroidElite1ArmoredMetallic', weight: 6, sizeMin: 42, sizeMax: 64, strength: 1.16 }
+        ]
+      };
 
-      if (envType === 'ice' || envType === 'wind') {
-        return [
-          { key: 'asteroid3CType', weight: 24 },
-          { key: 'asteroid7RubblePile', weight: 20 },
-          { key: 'asteroid8IcyDebris', weight: 28 },
-          { key: 'asteroid4SType', weight: 10 },
-          { key: 'asteroid5MType', weight: 6 },
-          { key: 'asteroid6FragmentSpike', weight: 12 }
-        ];
-      }
-
-      return [
-        { key: 'asteroid3CType', weight: 26 },
-        { key: 'asteroid7RubblePile', weight: 20 },
-        { key: 'asteroid8IcyDebris', weight: 18 },
-        { key: 'asteroid4SType', weight: 12 },
-        { key: 'asteroid5MType', weight: 8 },
-        { key: 'asteroid6FragmentSpike', weight: 16 }
-      ];
+      const safeIndex = Math.max(0, Math.min(planets.length - 1, planetIndex));
+      const envType = planets[safeIndex]?.envType || 'normal';
+      return byEnvType[envType] || byEnvType.normal;
     }
 
     function getAsteroidRenderImage(asteroid) {
       let spriteKey = asteroid.img;
       if (asteroid.damageSprites) {
         const hpRatio = asteroid.maxHp > 0 ? (asteroid.hp / asteroid.maxHp) : 1;
-        if (hpRatio <= 0.33 && asteroid.damageSprites.critical && images[asteroid.damageSprites.critical]) {
+        if (hpRatio <= 0.5 && asteroid.damageSprites.critical && images[asteroid.damageSprites.critical]) {
           spriteKey = asteroid.damageSprites.critical;
-        } else if (hpRatio <= 0.66 && asteroid.damageSprites.retak && images[asteroid.damageSprites.retak]) {
-          spriteKey = asteroid.damageSprites.retak;
         }
       }
       return images[spriteKey] || null;
@@ -1169,10 +980,9 @@
 
     function openMultiplayerMenu() {
       SoundManager.play('click');
+      SoundManager.playMenuTheme();
       document.getElementById('main-menu').style.display = 'none';
       document.getElementById('multiplayer-menu').style.display = 'flex';
-      SoundManager.stopBGM();
-      SoundManager.currentTheme = null;
       gameState = GameState.MENU;
     }
 
@@ -1181,6 +991,7 @@
       document.getElementById('multiplayer-menu').style.display = 'none';
       document.getElementById('main-menu').style.display = 'flex';
       gameState = GameState.MENU;
+      SoundManager.playMenuTheme();
     }
 
     function chooseMpP1Character(gender) {
@@ -1550,7 +1361,7 @@
 
     const handleStart = (pos) => {
       SoundManager.resume(); touchX = pos.x; touchY = pos.y; isTouching = true;
-      if (gameState === GameState.START) { SoundManager.play('click'); gameState = GameState.MENU; document.getElementById('main-menu').style.display = 'flex'; }
+      if (gameState === GameState.START) { SoundManager.play('click'); gameState = GameState.MENU; document.getElementById('main-menu').style.display = 'flex'; SoundManager.playMenuTheme(); }
       else if (gameState === GameState.ROADMAP) { if (pos.x > 20 && pos.x < 150 && pos.y > 20 && pos.y < 70) { closeRoadmap(); } }
       else if (gameState === GameState.SPACE_TRAVEL || gameState === GameState.EXPLORATION || gameState === GameState.BATTLE) {
          if (pos.x > canvas.width - 140 && pos.x < canvas.width - 80 && pos.y < 80) { openInGameRoadmap(); return; }
@@ -1599,6 +1410,7 @@
           resetGame();
           document.getElementById('main-menu').style.display = 'flex';
           gameState = GameState.MENU;
+          SoundManager.playMenuTheme();
         }
       }
     };
@@ -1745,45 +1557,50 @@
           return true;
         }
 
-        function canPlaceObstacle(ox, oy) {
-          const w = 40, h = 40;
+        function canPlaceObstacle(ox, oy, w, h) {
           const cx = ox + (w / 2), cy = oy + (h / 2);
+          const radius = Math.max(w, h) / 2;
 
           if (ox < 60 || ox > canvas.width - 100) return false;
           if (oy < 70 || oy > canvas.height - 110) return false;
 
-          if (Math.sqrt(Math.pow(cx - startPoint.x, 2) + Math.pow(cy - startPoint.y, 2)) < 120) return false;
+          if (Math.sqrt(Math.pow(cx - startPoint.x, 2) + Math.pow(cy - startPoint.y, 2)) < 100 + radius) return false;
 
           for (const pos of positions) {
-            if (Math.sqrt(Math.pow(cx - pos.x, 2) + Math.pow(cy - pos.y, 2)) < 90) return false;
-            if (pointSegmentDistance(cx, cy, startPoint.x, startPoint.y, pos.x, pos.y) < 60) return false;
+            if (Math.sqrt(Math.pow(cx - pos.x, 2) + Math.pow(cy - pos.y, 2)) < 72 + radius) return false;
+            if (pointSegmentDistance(cx, cy, startPoint.x, startPoint.y, pos.x, pos.y) < 44 + (radius * 0.5)) return false;
           }
 
           for (const o of obstacles) {
             const ocx = o.x + (o.w / 2), ocy = o.y + (o.h / 2);
-            if (Math.sqrt(Math.pow(cx - ocx, 2) + Math.pow(cy - ocy, 2)) < 52) return false;
+            const minGap = ((Math.max(o.w, o.h) + Math.max(w, h)) * 0.45) + 10;
+            if (Math.sqrt(Math.pow(cx - ocx, 2) + Math.pow(cy - ocy, 2)) < minGap) return false;
           }
 
           return true;
         }
 
         const obstacleCount = gameBalance.obstacleCountMin + Math.floor(Math.random() * ((gameBalance.obstacleCountMax - gameBalance.obstacleCountMin) + 1));
-        const explorationObstaclePool = getExplorationObstaclePool(currentPlanetIndex, p.envType);
+        const explorationObstaclePool = getExplorationObstaclePool(currentPlanetIndex);
         let obstacleTries = 0;
         while (obstacles.length < obstacleCount && obstacleTries < 1200) {
           obstacleTries++;
-          const ox = 60 + (Math.random() * (canvas.width - 160));
-          const oy = 70 + (Math.random() * (canvas.height - 180));
-          if (!canPlaceObstacle(ox, oy)) continue;
           const obstacleVariant = pickWeightedAsteroidVariant(explorationObstaclePool);
+          const minSize = obstacleVariant ? (obstacleVariant.sizeMin || 36) : 36;
+          const maxSize = obstacleVariant ? (obstacleVariant.sizeMax || 58) : 58;
+          const obstacleSize = minSize + (Math.random() * Math.max(2, maxSize - minSize));
+          const ox = 60 + (Math.random() * Math.max(1, canvas.width - (obstacleSize + 120)));
+          const oy = 70 + (Math.random() * Math.max(1, canvas.height - (obstacleSize + 150)));
+          if (!canPlaceObstacle(ox, oy, obstacleSize, obstacleSize)) continue;
           obstacles.push({
             x: ox,
             y: oy,
-            w: 40,
-            h: 40,
+            w: obstacleSize,
+            h: obstacleSize,
             rot: Math.random() * 6,
             rs: (Math.random() - 0.5) * 0.0003,
-            img: obstacleVariant ? obstacleVariant.key : (Math.random() > 0.5 ? 'asteroid1' : 'asteroid2')
+            strength: obstacleVariant ? (obstacleVariant.strength || 1.0) : 1.0,
+            img: obstacleVariant ? obstacleVariant.key : 'asteroid4SType'
           });
         }
 
@@ -2096,6 +1913,35 @@
       };
     }
 
+    function ensureReactorZoneMinSpan(zone, minSpan) {
+      if (!zone) return { min: 0, max: 100 };
+      const currentSpan = zone.max - zone.min;
+      if (currentSpan >= minSpan) return zone;
+
+      const targetSpan = Math.max(minSpan, 2);
+      const center = (zone.min + zone.max) / 2;
+      const halfSpan = targetSpan / 2;
+      let min = clampValue(center - halfSpan);
+      let max = clampValue(center + halfSpan);
+
+      const adjustedSpan = max - min;
+      if (adjustedSpan < targetSpan) {
+        if (min <= 0) {
+          max = clampValue(min + targetSpan);
+        } else if (max >= 100) {
+          min = clampValue(max - targetSpan);
+        }
+      }
+
+      return { min: Math.round(min), max: Math.round(max) };
+    }
+
+    function getReactorMinSpanByDifficulty() {
+      if (selectedDifficulty === 'mudah') return 16;
+      if (selectedDifficulty === 'sulit') return 12;
+      return 14;
+    }
+
     function randomizeReactorValuesOutsideSafeZone() {
       ['temp', 'pressure', 'flow'].forEach((key) => {
         const zone = reactorSafeZones[key];
@@ -2110,12 +1956,13 @@
     }
 
     function rerollReactorStepTargets() {
-      const shift = Math.min(4, Math.floor(currentPlanetIndex / 2));
-      const widthPenalty = Math.min(2, Math.floor(currentPlanetIndex / 3));
+      const shift = Math.min(2, Math.floor(currentPlanetIndex / 3));
+      const widthPenalty = Math.min(1, Math.floor(currentPlanetIndex / 4));
+      const minSpan = getReactorMinSpanByDifficulty();
       reactorSafeZones = {
-        temp: buildReactorZone(47 + shift, 56 - shift, 4 - widthPenalty, 7 - widthPenalty),
-        pressure: buildReactorZone(50 + shift, 61 - shift, 3 - widthPenalty, 6 - widthPenalty),
-        flow: buildReactorZone(41 + shift, 52 - shift, 5 - widthPenalty, 8 - widthPenalty)
+        temp: ensureReactorZoneMinSpan(buildReactorZone(46 + shift, 57 - shift, 6 - widthPenalty, 9 - widthPenalty), minSpan),
+        pressure: ensureReactorZoneMinSpan(buildReactorZone(48 + shift, 59 - shift, 6 - widthPenalty, 9 - widthPenalty), minSpan),
+        flow: ensureReactorZoneMinSpan(buildReactorZone(40 + shift, 54 - shift, 6 - widthPenalty, 10 - widthPenalty), minSpan)
       };
       randomizeReactorValuesOutsideSafeZone();
     }
@@ -2382,7 +2229,7 @@
     function getRank(s) { if(s>85000) return "LEGENDA ALAM SEMESTA"; if(s>75000) return "Pahlawan Tata Surya"; if(s>60000) return "Kapten Galaksi"; if(s>45000) return "Komandan Misi"; if(s>30000) return "Pilot Mahir"; if(s>15000) return "Penjelajah Bintang"; return "Ranger Taruna"; }
     function showMenuRoadmap() { SoundManager.play('click'); document.getElementById('main-menu').style.display = 'none'; returnState = GameState.MENU; gameState = GameState.ROADMAP; }
     function openInGameRoadmap() { SoundManager.play('click'); returnState = gameState; isPaused = true; gameState = GameState.ROADMAP; }
-    function closeRoadmap() { SoundManager.play('click'); if (returnState === GameState.MENU) { document.getElementById('main-menu').style.display = 'flex'; gameState = GameState.MENU; } else { gameState = returnState; isPaused = false; } }
+    function closeRoadmap() { SoundManager.play('click'); if (returnState === GameState.MENU) { document.getElementById('main-menu').style.display = 'flex'; gameState = GameState.MENU; SoundManager.playMenuTheme(); } else { gameState = returnState; isPaused = false; } }
 
     function updateSpaceTravel(dt) {
       if (isPaused) return; travelTime += dt; stars.forEach(s => { s.y += s.speed * dt; if(s.y > canvas.height) { s.y=0; s.x=Math.random()*canvas.width; }}); if (combo>0) { comboTimer-=dt; if(comboTimer<=0) combo=0; } autoShootTimer+=dt; 
@@ -2419,10 +2266,10 @@
         } else {
           let maxHP = Math.min(6, 2 + Math.floor(currentPlanetIndex / 1.5) + gameBalance.asteroidHpBonus);
           let hp = Math.random() < 0.2 + (currentPlanetIndex * 0.1) ? Math.floor(Math.random() * maxHP) + 1 : 1;
-          hp = Math.max(1, Math.floor(hp * (variant.hpMult || 1)));
-          if (variant.isElite) hp += 2 + Math.floor(currentPlanetIndex / 2);
+          hp = Math.max(3, Math.floor(hp * (variant.hpMult || 1)));
 
-          let size = (30 + (hp * 12)) * (variant.sizeMult || 1);
+          const sizeVariance = 0.9 + (Math.random() * 0.45);
+          let size = (24 + (hp * 14)) * (variant.sizeMult || 1) * sizeVariance;
           let speed = (120 + Math.random() * 120) * gameBalance.asteroidSpeedMult * (variant.speedMult || 1);
           if (hp > 2) speed *= 0.6;
 
@@ -2440,8 +2287,7 @@
             grazed: false,
             img: variant.key,
             damageSprites: variant.damageSprites || null,
-            scoreBonusMult: variant.scoreBonusMult || 1,
-            isElite: !!variant.isElite
+            scoreBonusMult: variant.scoreBonusMult || 1
           });
         }
       }
