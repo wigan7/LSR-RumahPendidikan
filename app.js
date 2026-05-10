@@ -217,7 +217,8 @@
       battleFemale: "./assets/images/battle-female.png",
       alien1: "./assets/images/alien-1.png",
       alien2: "./assets/images/alien-2.png",
-      alien3: "./assets/images/alien-3.png",
+      alien3: "./assets/images/alien3.png",
+      alien3Critical: "./assets/images/alien3-critical.png",
       asteroid4SType: "./assets/images/asteroid-4-s-type.png",
       asteroid4STypeCritical: "./assets/images/asteroid-4-s-type-critical.png",
       asteroidElite1ArmoredMetallic: "./assets/images/asteroid-elite-1-armored-metallic.png",
@@ -370,25 +371,177 @@
 
     // --- GAME DATA PLANET & QUIZ BANK ---
     const planets = [
-      { name: "Merkurius", color: "#8C7853", envType: "heat", artifactType: "rock", infoFragments: [{ short: "Orbit 88 hari", detail: "Merkurius adalah pelari cepat! Ia mengelilingi Matahari hanya dalam 88 hari Bumi." }, { short: "Suhu Ekstrim", detail: "Siang hari panas memanggang hingga 430\u00B0C, tapi malam hari beku hingga -180\u00B0C." }, { short: "Tanpa Atmosfer", detail: "Langit Merkurius selalu hitam karena tidak ada atmosfer untuk menyebarkan cahaya." }, { short: "Penuh Kawah", detail: "Permukaannya bopeng mirip Bulan karena banyak meteor menabraknya." }, { short: "1 Hari > 1 Tahun", detail: "Satu hari di sana butuh 176 hari Bumi, padahal setahunnya cuma 88 hari!" }], quiz: [{ question: "Berapa lama waktu revolusi (setahun) di Merkurius?", options: ["88 hari Bumi", "365 hari Bumi", "24 jam", "12 tahun"], correct: 0 }, { question: "Kenapa suhu siang hari di Merkurius sangat panas?", options: ["Ada banyak api", "Sangat dekat Matahari", "Banyak gesekan", "Intinya magma"], correct: 1 }, { question: "Apa warna langit di Merkurius saat siang hari?", options: ["Biru cerah", "Hitam gelap", "Merah membara", "Putih silau"], correct: 1 }, { question: "Mengapa permukaan Merkurius penuh kawah?", options: ["Bekas tambang alien", "Letusan gunung api", "Hantaman meteor", "Erosi air"], correct: 2 }, { question: "Mana yang lebih lama di Merkurius?", options: ["1 Hari (Rotasi)", "1 Tahun (Revolusi)", "Sama saja", "Tidak tahu"], correct: 0 }] },
-      { name: "Venus", color: "#FFC649", envType: "heat", artifactType: "probe", infoFragments: [{ short: "Atmosfer Beracun", detail: "Udaranya beracun! Isinya 96% Karbon Dioksida dengan awan Asam Sulfat." }, { short: "Suhu 462\u00B0C", detail: "Ini adalah planet terpanas karena efek rumah kaca memerangkap panas matahari." }, { short: "Tekanan Tinggi", detail: "Tekanan udaranya 92 kali lebih berat dari Bumi, setara kedalaman laut 1km." }, { short: "Rotasi Terbalik", detail: "Venus berputar dari Timur ke Barat, Matahari terbit dari Barat." }, { short: "Bintang Kejora", detail: "Sering terlihat sangat terang saat subuh atau senja, disebut Bintang Kejora." }], quiz: [{ question: "Gas apa yang paling banyak di atmosfer Venus?", options: ["Oksigen", "Karbon Dioksida", "Nitrogen", "Hidrogen"], correct: 1 }, { question: "Berapa suhu rata-rata permukaan Venus?", options: ["100\u00B0C", "462\u00B0C", "1000\u00B0C", "50\u00B0C"], correct: 1 }, { question: "Di Venus, Matahari terbit dari arah mana?", options: ["Timur", "Barat", "Utara", "Selatan"], correct: 1 }, { question: "Apa julukan populer untuk planet Venus?", options: ["Planet Merah", "Bintang Kejora", "Raksasa Gas", "Pembuat Es"], correct: 1 }, { question: "Mengapa Venus menjadi planet terpanas?", options: ["Paling dekat Matahari", "Efek Rumah Kaca", "Banyak Api", "Intinya meledak"], correct: 1 }] },
-      { name: "Bumi", color: "#4169E1", envType: "normal", artifactType: "satellite", infoFragments: [{ short: "71% Air", detail: "Kita hidup di Planet Biru! 71% permukaannya tertutup air lautan." }, { short: "Ozon Pelindung", detail: "Lapisan Ozon melindungi kita dari sinar Ultraviolet matahari yang berbahaya." }, { short: "Satu Bulan", detail: "Kita punya satu satelit setia yang mengatur pasang surut laut." }, { short: "Suhu 15\u00B0C", detail: "Suhu rata-rata 15\u00B0C membuat air bisa tetap cair, kunci kehidupan." }, { short: "Ada Kehidupan", detail: "Satu-satunya tempat di alam semesta yang diketahui memiliki kehidupan." }], quiz: [{ question: "Berapa persen permukaan Bumi tertutup air?", options: ["30%", "50%", "71%", "90%"], correct: 2 }, { question: "Apa fungsi utama lapisan Ozon?", options: ["Menahan Meteor", "Melindungi dari UV", "Membuat Hujan", "Mendinginkan Bumi"], correct: 1 }, { question: "Berapa jumlah satelit alami (bulan) Bumi?", options: ["Satu", "Dua", "Tiga", "Tidak ada"], correct: 0 }, { question: "Berapa suhu rata-rata permukaan Bumi?", options: ["0\u00B0C", "15\u00B0C", "30\u00B0C", "100\u00B0C"], correct: 1 }, { question: "Apa keunikan utama Bumi dibanding planet lain?", options: ["Paling besar", "Punya cincin", "Ada Kehidupan", "Warnanya merah"], correct: 2 }] },
-      { name: "Mars", color: "#CD5C5C", envType: "dust", artifactType: "rover", infoFragments: [{ short: "Tanah Berkarat", detail: "Merah karena tanahnya mengandung banyak zat besi yang berkarat (teroksidasi)." }, { short: "Gunung Tertinggi", detail: "Olympus Mons tingginya 22 km, hampir 3 kali lipat Gunung Everest." }, { short: "2 Bulan Kecil", detail: "Mars punya dua teman kecil bernama Phobos dan Deimos." }, { short: "Badai Debu", detail: "Badai debu di sini bisa menutupi seluruh planet selama berbulan-bulan." }, { short: "Robot Rover", detail: "Manusia mengirim robot seperti Curiosity untuk meneliti Mars." }], quiz: [{ question: "Mengapa planet Mars berwarna merah?", options: ["Panas api", "Karat besi tanah", "Pantulan cahaya", "Gas nitrogen"], correct: 1 }, { question: "Apa nama gunung tertinggi di Tata Surya?", options: ["Everest", "Olympus Mons", "Fuji", "Bromo"], correct: 1 }, { question: "Siapa nama dua bulan milik Mars?", options: ["Titan & Io", "Phobos & Deimos", "Luna & Sol", "Ganymede & Callisto"], correct: 1 }, { question: "Fenomena cuaca apa yang sering terjadi di Mars?", options: ["Hujan Asam", "Badai Debu Global", "Salju Abadi", "Tsunami"], correct: 1 }, { question: "Apa nama robot penjelajah di Mars?", options: ["Curiosity", "Apollo", "Sputnik", "Voyager"], correct: 0 }] },
-      { name: "Jupiter", color: "#DAA520", envType: "gas", artifactType: "probe", infoFragments: [{ short: "Raksasa Gas", detail: "Raja planet! Ukurannya bisa memuat 1.300 Bumi di dalamnya." }, { short: "Bintik Merah", detail: "Ada badai topan raksasa abadi bernama Bintik Merah Besar." }, { short: "79+ Bulan", detail: "Jupiter punya puluhan bulan. Empat terbesar: Io, Europa, Ganymede, Callisto." }, { short: "Gas H & He", detail: "Atmosfernya sebagian besar terdiri dari Hidrogen dan Helium." }, { short: "Rotasi 10 Jam", detail: "Jupiter berputar sangat cepat, satu hari cuma 10 jam." }], quiz: [{ question: "Berapa kali ukuran Bumi bisa masuk ke Jupiter?", options: ["10 kali", "100 kali", "1.300 kali", "5.000 kali"], correct: 2 }, { question: "Apa nama badai raksasa di permukaan Jupiter?", options: ["Mata Setan", "Bintik Merah Besar", "Topan Putih", "Lubang Hitam"], correct: 1 }, { question: "Berapa lama satu hari (rotasi) di Jupiter?", options: ["24 Jam", "10 Jam", "100 Jam", "1 Tahun"], correct: 1 }, { question: "Apa kandungan gas utama planet Jupiter?", options: ["Oksigen & Nitrogen", "Metana & Amonia", "Hidrogen & Helium", "Karbondioksida"], correct: 2 }, { question: "Berapa perkiraan jumlah bulan Jupiter?", options: ["Cuma 1", "Sekitar 10", "Lebih dari 79", "Tidak punya"], correct: 2 }] },
-      { name: "Saturnus", color: "#F4A460", envType: "gas", artifactType: "crystal", infoFragments: [{ short: "Cincin Es", detail: "Cincinnya terbuat dari miliaran bongkahan es, batu, dan debu." }, { short: "Bisa Mengapung", detail: "Saturnus adalah planet dengan massa jenis paling ringan, bisa mengapung di air!" }, { short: "Bulan Titan", detail: "Titan adalah satu-satunya bulan yang punya atmosfer tebal." }, { short: "Angin Kencang", detail: "Angin di sini mencapai kecepatan 1.800 km/jam, super kencang!" }, { short: "Cincin Tipis", detail: "Cincinnya lebar tapi sangat tipis, rata-rata tebalnya cuma 10 meter." }], quiz: [{ question: "Terbuat dari apakah cincin Saturnus?", options: ["Emas & Perak", "Es & Batuan", "Gas beracun", "Cahaya"], correct: 1 }, { question: "Apa yang terjadi jika Saturnus ditaruh di air?", options: ["Tenggelam", "Meledak", "Mengapung", "Mencair"], correct: 2 }, { question: "Apa nama bulan terbesar milik Saturnus?", options: ["Ganymede", "Titan", "Europa", "Phobos"], correct: 1 }, { question: "Berapa kecepatan angin di Saturnus?", options: ["100 km/jam", "500 km/jam", "1.800 km/jam", "Pelan sekali"], correct: 2 }, { question: "Berapa rata-rata ketebalan cincin Saturnus?", options: ["10 meter", "1 kilometer", "100 kilometer", "1 juta kilometer"], correct: 0 }] },
-      { name: "Uranus", color: "#4FD0E7", envType: "ice", artifactType: "diamond", infoFragments: [{ short: "Miring 98\u00B0", detail: "Planet ini berputar miring seperti bola yang menggelinding." }, { short: "Warna Biru", detail: "Gas Metana menyerap warna merah dan memantulkan warna biru kehijauan." }, { short: "Sangat Dingin", detail: "Suhu terdingin di atmosfer planet, bisa mencapai -224\u00B0C." }, { short: "Cincin Vertikal", detail: "Karena planetnya miring, cincinnya pun terlihat vertikal (berdiri tegak)." }, { short: "Inti Es", detail: "Punya mantel 'es' panas dari air, amonia, dan metana." }], quiz: [{ question: "Apa keunikan rotasi planet Uranus?", options: ["Sangat cepat", "Miring/Menggelinding", "Berhenti", "Zig-zag"], correct: 1 }, { question: "Gas apa yang membuat Uranus berwarna biru?", options: ["Oksigen", "Metana", "Helium", "Nitrogen"], correct: 1 }, { question: "Berapa suhu terdingin yang pernah dicatat?", options: ["-50\u00B0C", "-100\u00B0C", "-224\u00B0C", "0\u00B0C"], correct: 2 }, { question: "Bagaimana posisi cincin Uranus?", options: ["Horizontal", "Vertikal", "Tidak punya cincin", "Melengkung"], correct: 1 }, { question: "Apa isi mantel planet Uranus?", options: ["Batu cair", "Es panas (Air/Amonia)", "Gas kosong", "Logam"], correct: 1 }] },
-      { name: "Neptunus", color: "#4169E1", envType: "wind", artifactType: "diamond", infoFragments: [{ short: "Planet ke-8", detail: "Planet terjauh dari Matahari yang kita kenal sekarang." }, { short: "Angin 2000 km/j", detail: "Pemegang rekor angin tercepat! Kecepatannya supersonik." }, { short: "165 Tahun", detail: "Butuh waktu 165 tahun Bumi untuk mengelilingi Matahari satu kali." }, { short: "Hujan Berlian", detail: "Tekanan kuat diduga memadatkan karbon menjadi hujan berlian!" }, { short: "Bintik Gelap", detail: "Punya badai besar bernama Bintik Gelap Besar." }], quiz: [{ question: "Neptunus adalah planet urutan ke berapa?", options: ["Ke-1", "Ke-5", "Ke-8", "Ke-9"], correct: 2 }, { question: "Apa rekor cuaca yang dipegang Neptunus?", options: ["Terpanas", "Angin Tercepat", "Paling Kering", "Paling Tenang"], correct: 1 }, { question: "Berapa lama 1 tahun di Neptunus?", options: ["10 tahun", "88 hari", "165 tahun Bumi", "1000 tahun"], correct: 2 }, { question: "Fenomena hujan apa yang diduga terjadi di sana?", options: ["Hujan Air", "Hujan Asam", "Hujan Berlian", "Hujan Emas"], correct: 2 }, { question: "Apa nama badai besar di Neptunus?", options: ["Bintik Merah", "Bintik Gelap Besar", "Topan Putih", "Mata Biru"], correct: 1 }] }
+      {
+        name: "Merkurius",
+        color: "#8C7853",
+        envType: "heat",
+        artifactType: "rock",
+        infoFragments: [
+          { short: "Orbit 88 hari", detail: "Merkurius mengelilingi Matahari hanya dalam 88 hari Bumi." },
+          { short: "Suhu Ekstrem", detail: "Suhu di Merkurius bisa sekitar 430°C pada siang hari dan sekitar -180°C pada malam hari." },
+          { short: "Eksosfer Tipis", detail: "Merkurius hampir tidak punya atmosfer, hanya eksosfer sangat tipis, sehingga langit tampak hitam." },
+          { short: "Penuh Kawah", detail: "Permukaan Merkurius penuh kawah karena sering terkena hantaman meteoroid." },
+          { short: "Hari Sangat Panjang", detail: "Satu hari Matahari di Merkurius sekitar 176 hari Bumi, lebih lama daripada 1 tahunnya." }
+        ],
+        quiz: [
+          { question: "Berapa lama revolusi Merkurius mengelilingi Matahari?", options: ["88 hari Bumi", "365 hari Bumi", "24 jam", "12 tahun Bumi"], correct: 0 },
+          { question: "Mengapa suhu siang di Merkurius sangat panas?", options: ["Karena ada banyak api", "Karena dekat dengan Matahari", "Karena gesekan antarbatu", "Karena inti magma terbuka"], correct: 1 },
+          { question: "Bagaimana warna langit di Merkurius pada siang hari?", options: ["Biru cerah", "Hitam gelap", "Merah membara", "Putih susu"], correct: 1 },
+          { question: "Mengapa permukaan Merkurius memiliki banyak kawah?", options: ["Bekas tambang", "Letusan gunung api aktif", "Sering dihantam meteoroid", "Erosi air hujan"], correct: 2 },
+          { question: "Di Merkurius, mana yang lebih lama?", options: ["1 hari Matahari (176 hari Bumi)", "1 tahun Merkurius (88 hari Bumi)", "Keduanya sama", "Tidak bisa dibandingkan"], correct: 0 }
+        ]
+      },
+      {
+        name: "Venus",
+        color: "#FFC649",
+        envType: "heat",
+        artifactType: "probe",
+        infoFragments: [
+          { short: "Atmosfer Beracun", detail: "Atmosfer Venus didominasi karbon dioksida dengan awan asam sulfat." },
+          { short: "Suhu 462°C", detail: "Venus adalah planet terpanas karena efek rumah kaca yang sangat kuat." },
+          { short: "Tekanan Tinggi", detail: "Tekanan udara Venus sekitar 92 kali tekanan udara di permukaan Bumi." },
+          { short: "Rotasi Terbalik", detail: "Venus berputar dari timur ke barat, sehingga Matahari tampak terbit dari barat." },
+          { short: "Bintang Kejora", detail: "Venus sering tampak sangat terang saat subuh atau senja dan dijuluki Bintang Kejora." }
+        ],
+        quiz: [
+          { question: "Gas apa yang paling dominan di atmosfer Venus?", options: ["Oksigen", "Karbon dioksida", "Nitrogen", "Hidrogen"], correct: 1 },
+          { question: "Berapa suhu rata-rata permukaan Venus?", options: ["100°C", "462°C", "1000°C", "50°C"], correct: 1 },
+          { question: "Di Venus, Matahari tampak terbit dari arah mana?", options: ["Timur", "Barat", "Utara", "Selatan"], correct: 1 },
+          { question: "Apa julukan Venus saat terlihat sangat terang di langit?", options: ["Planet Merah", "Bintang Kejora", "Raksasa Gas", "Planet Cincin"], correct: 1 },
+          { question: "Apa penyebab utama Venus menjadi planet terpanas?", options: ["Paling dekat Matahari", "Efek rumah kaca ekstrem", "Banyak gunung api aktif", "Inti planet terbuka"], correct: 1 }
+        ]
+      },
+      {
+        name: "Bumi",
+        color: "#4169E1",
+        envType: "normal",
+        artifactType: "satellite",
+        infoFragments: [
+          { short: "71% Air", detail: "Sekitar 71% permukaan Bumi tertutup air, terutama lautan." },
+          { short: "Ozon Pelindung", detail: "Lapisan ozon membantu melindungi makhluk hidup dari radiasi ultraviolet berlebih." },
+          { short: "Satu Bulan", detail: "Bumi memiliki satu satelit alami, yaitu Bulan." },
+          { short: "Suhu 15°C", detail: "Suhu rata-rata Bumi sekitar 15°C, mendukung air tetap cair." },
+          { short: "Ada Kehidupan", detail: "Bumi adalah satu-satunya planet yang diketahui memiliki kehidupan." }
+        ],
+        quiz: [
+          { question: "Berapa persen permukaan Bumi yang tertutup air?", options: ["30%", "50%", "71%", "90%"], correct: 2 },
+          { question: "Apa fungsi utama lapisan ozon di Bumi?", options: ["Menahan meteor", "Menyerap UV berbahaya", "Membentuk hujan", "Menaikkan suhu Bumi"], correct: 1 },
+          { question: "Berapa jumlah satelit alami Bumi?", options: ["Satu", "Dua", "Tiga", "Tidak ada"], correct: 0 },
+          { question: "Berapa suhu rata-rata permukaan Bumi?", options: ["0°C", "15°C", "30°C", "100°C"], correct: 1 },
+          { question: "Apa keunikan utama Bumi dibanding planet lain yang diketahui?", options: ["Paling besar", "Punya cincin", "Memiliki kehidupan", "Berwarna merah"], correct: 2 }
+        ]
+      },
+      {
+        name: "Mars",
+        color: "#CD5C5C",
+        envType: "dust",
+        artifactType: "rover",
+        infoFragments: [
+          { short: "Tanah Berkarat", detail: "Warna merah Mars berasal dari oksida besi (karat) pada permukaannya." },
+          { short: "Gunung Tertinggi", detail: "Olympus Mons di Mars adalah gunung tertinggi di Tata Surya, sekitar 22 km." },
+          { short: "2 Bulan Kecil", detail: "Mars memiliki dua bulan kecil bernama Phobos dan Deimos." },
+          { short: "Badai Debu", detail: "Badai debu di Mars bisa sangat besar dan berlangsung lama." },
+          { short: "Robot Rover", detail: "Mars diteliti oleh rover seperti Curiosity dan Perseverance." }
+        ],
+        quiz: [
+          { question: "Mengapa Mars terlihat berwarna merah?", options: ["Karena lava panas", "Karena oksida besi (karat)", "Karena pantulan samudra", "Karena nitrogen tinggi"], correct: 1 },
+          { question: "Apa nama gunung tertinggi di Mars sekaligus Tata Surya?", options: ["Everest", "Olympus Mons", "Fuji", "Bromo"], correct: 1 },
+          { question: "Apa nama dua bulan milik Mars?", options: ["Titan dan Io", "Phobos dan Deimos", "Luna dan Sol", "Ganymede dan Callisto"], correct: 1 },
+          { question: "Fenomena cuaca yang sering terjadi di Mars adalah...", options: ["Hujan asam", "Badai debu", "Tsunami laut", "Hujan salju tebal"], correct: 1 },
+          { question: "Salah satu rover penjelajah yang ditugaskan ke Mars adalah...", options: ["Curiosity", "Apollo", "Sputnik", "Voyager"], correct: 0 }
+        ]
+      },
+      {
+        name: "Jupiter",
+        color: "#DAA520",
+        envType: "gas",
+        artifactType: "probe",
+        infoFragments: [
+          { short: "Raksasa Gas", detail: "Volume Jupiter sangat besar, kira-kira setara lebih dari 1.300 Bumi." },
+          { short: "Bintik Merah", detail: "Bintik Merah Besar adalah badai raksasa yang bertahan sangat lama di atmosfer Jupiter." },
+          { short: "95+ Bulan", detail: "Jupiter memiliki sangat banyak bulan; empat yang terbesar adalah Io, Europa, Ganymede, dan Callisto." },
+          { short: "Gas H dan He", detail: "Jupiter didominasi hidrogen dan helium." },
+          { short: "Rotasi Cepat", detail: "Satu hari di Jupiter hanya sekitar 10 jam." }
+        ],
+        quiz: [
+          { question: "Kira-kira berapa Bumi yang dapat termuat dalam volume Jupiter?", options: ["Sekitar 10", "Sekitar 100", "Lebih dari 1.300", "Lebih dari 5.000"], correct: 2 },
+          { question: "Apa nama badai raksasa di atmosfer Jupiter?", options: ["Mata Setan", "Bintik Merah Besar", "Topan Putih", "Lubang Hitam"], correct: 1 },
+          { question: "Berapa lama satu hari (rotasi) di Jupiter?", options: ["24 jam", "Sekitar 10 jam", "100 jam", "1 tahun"], correct: 1 },
+          { question: "Gas utama penyusun Jupiter adalah...", options: ["Oksigen dan nitrogen", "Metana dan amonia", "Hidrogen dan helium", "Karbon dioksida"], correct: 2 },
+          { question: "Perkiraan jumlah bulan Jupiter yang telah diketahui saat ini adalah...", options: ["1", "Sekitar 10", "Lebih dari 95", "Tidak punya bulan"], correct: 2 }
+        ]
+      },
+      {
+        name: "Saturnus",
+        color: "#F4A460",
+        envType: "gas",
+        artifactType: "crystal",
+        infoFragments: [
+          { short: "Cincin Es", detail: "Cincin Saturnus tersusun dari bongkahan es, batuan, dan debu." },
+          { short: "Massa Jenis Rendah", detail: "Massa jenis rata-rata Saturnus lebih rendah dari air." },
+          { short: "Bulan Titan", detail: "Titan adalah bulan terbesar Saturnus dan punya atmosfer tebal kaya nitrogen." },
+          { short: "Angin Kencang", detail: "Kecepatan angin di Saturnus dapat mencapai sekitar 1.800 km/jam." },
+          { short: "Cincin Tipis", detail: "Cincin Saturnus sangat lebar, tetapi umumnya hanya setebal puluhan meter." }
+        ],
+        quiz: [
+          { question: "Cincin Saturnus terutama tersusun dari...", options: ["Emas dan perak", "Es dan batuan", "Gas beracun", "Cahaya murni"], correct: 1 },
+          { question: "Secara teoritis, apa yang terjadi jika Saturnus ditempatkan di lautan air raksasa?", options: ["Tenggelam", "Meledak", "Mengapung", "Menguap"], correct: 2 },
+          { question: "Apa nama bulan terbesar milik Saturnus?", options: ["Ganymede", "Titan", "Europa", "Phobos"], correct: 1 },
+          { question: "Kecepatan angin di atmosfer Saturnus dapat mencapai sekitar...", options: ["100 km/jam", "500 km/jam", "1.800 km/jam", "10 km/jam"], correct: 2 },
+          { question: "Ketebalan sebagian besar cincin Saturnus kira-kira...", options: ["Puluhan meter", "1 kilometer", "100 kilometer", "1 juta kilometer"], correct: 0 }
+        ]
+      },
+      {
+        name: "Uranus",
+        color: "#4FD0E7",
+        envType: "ice",
+        artifactType: "diamond",
+        infoFragments: [
+          { short: "Miring 98°", detail: "Sumbu rotasi Uranus sangat miring, sekitar 98°, sehingga tampak seperti berguling." },
+          { short: "Warna Biru", detail: "Gas metana di atmosfer Uranus menyerap cahaya merah sehingga planet tampak biru kehijauan." },
+          { short: "Sangat Dingin", detail: "Suhu minimum atmosfer Uranus pernah tercatat sekitar -224°C." },
+          { short: "Cincin Ikut Miring", detail: "Karena sumbunya sangat miring, sistem cincin Uranus tampak unik saat diamati dari Bumi." },
+          { short: "Raksasa Es", detail: "Bagian dalam Uranus kaya campuran air, amonia, dan metana." }
+        ],
+        quiz: [
+          { question: "Apa keunikan utama rotasi Uranus?", options: ["Sangat cepat", "Sumbunya sangat miring", "Berhenti berputar", "Berputar zig-zag"], correct: 1 },
+          { question: "Gas apa yang membuat Uranus tampak biru kehijauan?", options: ["Oksigen", "Metana", "Helium", "Nitrogen"], correct: 1 },
+          { question: "Berapa suhu minimum atmosfer Uranus yang pernah dicatat?", options: ["-50°C", "-100°C", "-224°C", "0°C"], correct: 2 },
+          { question: "Bagaimana orientasi cincin Uranus jika dilihat terkait kemiringan planetnya?", options: ["Selalu datar horizontal", "Tampak sangat miring/nyaris vertikal", "Tidak punya cincin", "Bentuknya spiral"], correct: 1 },
+          { question: "Material utama bagian dalam Uranus kaya akan...", options: ["Batu cair saja", "Air, amonia, dan metana", "Gas oksigen murni", "Logam besi"], correct: 1 }
+        ]
+      },
+      {
+        name: "Neptunus",
+        color: "#4169E1",
+        envType: "wind",
+        artifactType: "diamond",
+        infoFragments: [
+          { short: "Planet ke-8", detail: "Neptunus adalah planet kedelapan dari Matahari." },
+          { short: "Angin Sangat Cepat", detail: "Neptunus memiliki angin tercepat di Tata Surya, dapat melampaui 2.100 km/jam." },
+          { short: "165 Tahun", detail: "Satu tahun Neptunus setara sekitar 165 tahun Bumi." },
+          { short: "Hujan Berlian", detail: "Di bagian dalam Neptunus diduga terjadi proses pembentukan hujan berlian." },
+          { short: "Bintik Gelap", detail: "Neptunus memiliki badai besar yang dikenal sebagai Bintik Gelap Besar." }
+        ],
+        quiz: [
+          { question: "Neptunus berada pada urutan planet ke berapa dari Matahari?", options: ["Ke-1", "Ke-5", "Ke-8", "Ke-9"], correct: 2 },
+          { question: "Rekor cuaca yang dimiliki Neptunus adalah...", options: ["Planet terpanas", "Angin tercepat", "Paling kering", "Paling tenang"], correct: 1 },
+          { question: "Berapa lama 1 tahun di Neptunus?", options: ["10 tahun Bumi", "88 hari Bumi", "165 tahun Bumi", "1000 tahun Bumi"], correct: 2 },
+          { question: "Fenomena yang diduga terjadi jauh di dalam Neptunus adalah...", options: ["Hujan air", "Hujan asam", "Hujan berlian", "Hujan emas"], correct: 2 },
+          { question: "Apa nama badai besar yang pernah diamati di Neptunus?", options: ["Bintik Merah Besar", "Bintik Gelap Besar", "Topan Putih", "Mata Biru"], correct: 1 }
+        ]
+      }
     ];
 
     const planetMinigameProgression = [
-      ['excavation', 'signal', 'generator'],
-      ['excavation', 'drill', 'spectrometer'],
-      ['signal', 'drill', 'microscope'],
-      ['generator', 'signal', 'sensorCircuit'],
-      ['drill', 'sensorCircuit', 'reactor'],
-      ['spectrometer', 'excavation', 'reactor'],
-      ['microscope', 'sensorCircuit', 'reactor'],
-      ['generator', 'drill', 'reactor']
+      ['excavation', 'generator', 'signal'],
+      ['excavation', 'signal', 'drill'],
+      ['generator', 'drill', 'microscope'],
+      ['signal', 'microscope', 'sensorCircuit'],
+      ['drill', 'sensorCircuit', 'spectrometer'],
+      ['microscope', 'sensorCircuit', 'spectrometer'],
+      ['spectrometer', 'sensorCircuit', 'reactor'],
+      ['sensorCircuit', 'spectrometer', 'reactor']
     ];
 
     function getPlanetMinigameTypes(planetIndex) {
@@ -484,8 +637,8 @@
       Mars: { temp: 'Rata-rata -63°C', size: 'Diameter 6.779 km (sekitar 53% Bumi)', composition: 'Batuan beroksida besi + es kutub' },
       Jupiter: { temp: 'Sekitar -145°C', size: 'Diameter 139.820 km (sekitar 11 kali Bumi)', composition: 'Dominan hidrogen + helium' },
       Saturnus: { temp: 'Sekitar -178°C', size: 'Diameter 116.460 km (sekitar 9 kali Bumi)', composition: 'Hidrogen + helium, cincin es-batu' },
-      Uranus: { temp: 'Sekitar -224°C', size: 'Diameter 50.724 km (sekitar 4 kali Bumi)', composition: 'Es air, amonia, metana + H/He' },
-      Neptunus: { temp: 'Sekitar -214°C', size: 'Diameter 49.244 km (sekitar 4 kali Bumi)', composition: 'Es air, amonia, metana + H/He' }
+      Uranus: { temp: 'Rata-rata sekitar -195°C (minimum ~-224°C)', size: 'Diameter 50.724 km (sekitar 4 kali Bumi)', composition: 'Es air, amonia, metana + H/He' },
+      Neptunus: { temp: 'Sekitar -214°C (awan atas)', size: 'Diameter 49.244 km (sekitar 4 kali Bumi)', composition: 'Es air, amonia, metana + H/He' }
     };
 
     const planetExplorationVisualProfiles = {
@@ -956,8 +1109,79 @@
     let quizStartTime = 0;
     let battleMistakes = 0;
     let alienAnim = { state: 'idle', y: 0, alpha: 1.0, timer: 0 };
+    const battleAlienSequence = [0, 1, 2, 2, 2];
+    const battleAlien3MaxHp = 3;
+    let alien3Hits = 0;
+    let isAlien3Critical = false;
     // NEW: Active Quiz Set for current battle
     let activeQuizSet = []; 
+
+    function getBattleAlienForQuestion(questionIndex) {
+      return battleAlienSequence[Math.max(0, Math.min(battleAlienSequence.length - 1, questionIndex))];
+    }
+
+    function getRemainingBattleQuestions() {
+      return Math.max(0, activeQuizSet.length - currentQuestion);
+    }
+
+    function triggerAlien3CriticalTransformation() {
+      if (isAlien3Critical) return;
+      const bodyX = 600;
+      const bodyY = 100 + alienAnim.y;
+      const bodyW = 120;
+      const bodyH = 160;
+
+      // Ledakan menyebar di seluruh badan sebelum masuk fase critical.
+      for (let i = 0; i < 16; i++) {
+        battleEffects.push({
+          type: 'explosion',
+          x: bodyX + (Math.random() * bodyW),
+          y: bodyY + (Math.random() * bodyH),
+          r: 0,
+          mr: 18 + (Math.random() * 18),
+          t: 18
+        });
+      }
+      SoundManager.play('explosion');
+      isAlien3Critical = true;
+      battleMessage = 'ALIEN 3 MEMASUKI FASE CRITICAL!';
+    }
+
+    function finishBattlePhase() {
+      if (battleMistakes === 0) {
+        score += 2000;
+        showFloatingText('PERFECT BATTLE +2000', canvas.width/2, canvas.height/2, '#0F0');
+      }
+      if (currentPlanetIndex === 1 || currentPlanetIndex === 3 || currentPlanetIndex === 5) {
+        gameState = GameState.UPGRADE_SCREEN;
+        shipLevel++;
+        upgradeTimer = 5;
+        SoundManager.play('collect');
+      } else {
+        gameState = GameState.LEAVING_PLANET;
+        initLeavingPlanet();
+      }
+    }
+
+    function advanceBattleQuestion() {
+      if (currentQuestion >= activeQuizSet.length - 1) {
+        finishBattlePhase();
+        return;
+      }
+
+      currentQuestion++;
+      currentAlien = getBattleAlienForQuestion(currentQuestion);
+      selectedOption = -1;
+      showQuestion = true;
+      quizStartTime = Date.now();
+
+      if (currentAlien === 2 && !isAlien3Critical) {
+        const remaining = getRemainingBattleQuestions();
+        if (alien3Hits >= 2 || remaining === 1) {
+          triggerAlien3CriticalTransformation();
+        }
+      }
+    }
 
     let mpConfig = {
       p1Gender: 'male',
@@ -1763,7 +1987,7 @@
         { id: 0, label: 'A', x: 280, y: 220, active: false },
         { id: 1, label: 'B', x: 430, y: 180, active: false },
         { id: 2, label: 'C', x: 580, y: 220, active: false },
-        { id: 3, label: 'D', x: 430, y: 360, active: false }
+        { id: 3, label: 'D', x: 430, y: 315, active: false }
       ];
       generatorSwitchOrder = [...generatorSwitches]
         .sort(() => Math.random() - 0.5)
@@ -1884,6 +2108,16 @@
         });
       }
       return false;
+    }
+
+    function getSensorCircuitConnectableNodes(nodeIndex) {
+      const connectable = new Set();
+      sensorCircuitAllowedEdges.forEach((edge) => {
+        const [a, b] = edge.split('-').map(Number);
+        if (a === nodeIndex) connectable.add(b);
+        if (b === nodeIndex) connectable.add(a);
+      });
+      return connectable;
     }
 
     function initMicroscopeMinigame() {
@@ -2195,16 +2429,19 @@
     function initReadingPhase() { readingTimer = 60; floatingTexts = []; }
     
     function initBattle() { 
-        currentAlien=0; currentQuestion=0; selectedOption=-1; battleMessage=""; showQuestion=true; 
+      currentAlien=0; currentQuestion=0; selectedOption=-1; battleMessage=""; showQuestion=true; 
         battleEffects=[]; battleMistakes=0; quizStartTime=Date.now(); floatingTexts=[]; 
-        alienAnim={state:'idle', y:0, alpha:1.0, timer:0}; 
+      alienAnim={state:'idle', y:0, alpha:1.0, timer:0}; 
+      alien3Hits=0;
+      isAlien3Critical=false;
       SoundManager.playBattleTheme();
         const planetQuiz = [...planets[currentPlanetIndex].quiz];
         for (let i = planetQuiz.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [planetQuiz[i], planetQuiz[j]] = [planetQuiz[j], planetQuiz[i]];
         }
-        activeQuizSet = planetQuiz.slice(0, 3);
+      activeQuizSet = planetQuiz.slice(0, 5);
+      currentAlien = getBattleAlienForQuestion(currentQuestion);
     }
 
     function updateUpgradeScreen(dt) { upgradeTimer -= dt; if (upgradeTimer <= 0) { gameState = GameState.LEAVING_PLANET; initLeavingPlanet(); } }
@@ -2474,13 +2711,38 @@
       showQuestion = false; stats.quizTotal++;
       let pLaserColor = (playerData.gender === 'male') ? '#00BFFF' : '#FF1493';
       let aLaserColor = '#FF0000'; let timeTaken = (Date.now() - quizStartTime) / 1000;
+      const activeAlien = getBattleAlienForQuestion(currentQuestion);
       if(selectedOption === q.correct) {
         battleMessage = "BENAR! SERANGAN LASER!"; let qScore = 1000;
         if (timeTaken < 3) qScore += 500; else if (timeTaken < 5) qScore += 250;
         score += qScore; stats.quizCorrect++; SoundManager.play('correct'); SoundManager.play('shoot');
         battleEffects.push({type:'laser', sx: 190, sy: 160, ex: 660, ey: 180, t: 20, c: pLaserColor });
         setTimeout(() => battleEffects.push({type:'explosion', x:660, y:180, r:0, mr:60, t:20}), 200);
-        setTimeout(() => { alienAnim.state = 'dying'; alienAnim.y = 0; alienAnim.alpha = 1.0; alienAnim.timer = 40; SoundManager.play('explosion'); }, 500);
+        if (activeAlien === 2) {
+          alien3Hits = Math.min(battleAlien3MaxHp, alien3Hits + 1);
+          setTimeout(() => {
+            if (alien3Hits >= battleAlien3MaxHp) {
+              alienAnim.state = 'dying';
+              alienAnim.y = 0;
+              alienAnim.alpha = 1.0;
+              alienAnim.timer = 40;
+              SoundManager.play('explosion');
+            } else {
+              if (!isAlien3Critical && alien3Hits >= 2) {
+                triggerAlien3CriticalTransformation();
+              }
+              advanceBattleQuestion();
+            }
+          }, 600);
+        } else {
+          setTimeout(() => {
+            alienAnim.state = 'dying';
+            alienAnim.y = 0;
+            alienAnim.alpha = 1.0;
+            alienAnim.timer = 40;
+            SoundManager.play('explosion');
+          }, 500);
+        }
       } else {
         battleMessage = "SALAH! KENA TEMBAK!"; playerHP -= gameBalance.quizWrongDamage; battleMistakes++; SoundManager.play('wrong'); SoundManager.play('hit');
         battleEffects.push({type:'laser', sx: 610, sy: 180, ex: 140, ey: 180, t: 20, c: aLaserColor });
@@ -2489,16 +2751,10 @@
     }
     
     function nextLevelLogic() {
-        currentAlien++; alienAnim.state = 'idle'; alienAnim.y = 0;
-        // Check if we exhausted the 3 selected questions
-        if(currentAlien >= 3) {
-            if (battleMistakes === 0) { score += 2000; showFloatingText("PERFECT BATTLE +2000", canvas.width/2, canvas.height/2, '#0F0'); }
-            if (currentPlanetIndex === 1 || currentPlanetIndex === 3 || currentPlanetIndex === 5) {
-                gameState = GameState.UPGRADE_SCREEN; shipLevel++; upgradeTimer = 5; SoundManager.play('collect');
-            } else {
-                gameState = GameState.LEAVING_PLANET; initLeavingPlanet();
-            }
-        } else { currentQuestion++; selectedOption = -1; showQuestion = true; quizStartTime = Date.now(); }
+      alienAnim.state = 'idle';
+      alienAnim.y = 0;
+      alienAnim.alpha = 1.0;
+      advanceBattleQuestion();
     }
 
     // --- DRAWING ---
@@ -3263,6 +3519,9 @@
 
     function drawSensorCircuit() {
       drawMinigameFrame('RAKIT RANGKAIAN SENSOR', 'Hubungkan node penting tanpa melebihi batas energi.', '#7ED0FF');
+      const connectableNodes = sensorCircuitSelectedNode !== -1
+        ? getSensorCircuitConnectableNodes(sensorCircuitSelectedNode)
+        : new Set();
 
       sensorCircuitEdges.forEach((edge) => {
         const [a, b] = edge.split('-').map(Number);
@@ -3279,11 +3538,16 @@
       });
 
       sensorCircuitNodes.forEach((node, idx) => {
+        const isSelectedNode = sensorCircuitSelectedNode === idx;
+        const isConnectableNode = connectableNodes.has(idx);
         const isGoalNode = sensorCircuitMode === 'route' && (idx === sensorCircuitSource || idx === sensorCircuitTarget);
-        ctx.fillStyle = sensorCircuitSelectedNode === idx ? '#FFD700' : (isGoalNode ? '#FFD166' : '#FFFFFF');
+        ctx.fillStyle = isSelectedNode ? '#FFD700' : (isConnectableNode ? '#7CE3FF' : (isGoalNode ? '#FFD166' : '#FFFFFF'));
         ctx.beginPath();
         ctx.arc(node.x, node.y, 22, 0, 6.28);
         ctx.fill();
+        ctx.strokeStyle = isSelectedNode ? '#FFF4B0' : (isConnectableNode ? '#00BFFF' : '#0D1321');
+        ctx.lineWidth = isSelectedNode || isConnectableNode ? 3 : 2;
+        ctx.stroke();
         ctx.fillStyle = '#0D1321';
         ctx.font = 'bold 16px Arial';
         ctx.fillText(String(idx + 1), node.x, node.y + 5);
@@ -3482,12 +3746,35 @@
       const charImg = (playerData.gender === 'male') ? images.battleMale : images.battleFemale; if (charImg.complete && charImg.naturalWidth !== 0) { ctx.drawImage(charImg, 80, 100, 120, 160); }
       const hpBarX = 96; const hpBarY = 244; const hpBarW = 72; const hpBarH = 9; const hpRatio = Math.max(0, Math.min(100, playerHP)) / 100; ctx.fillStyle='#333'; ctx.fillRect(hpBarX, hpBarY, hpBarW, hpBarH); ctx.fillStyle='#0F0'; ctx.fillRect(hpBarX, hpBarY, hpBarW * hpRatio, hpBarH); ctx.strokeStyle='#FFF'; ctx.lineWidth=2; ctx.strokeRect(hpBarX, hpBarY, hpBarW, hpBarH);
 
+      if (currentQuestion < activeQuizSet.length) {
+        currentAlien = getBattleAlienForQuestion(currentQuestion);
+      }
+
       if (alienAnim.state !== 'dying' || alienAnim.y < 500) {
           const float = alienAnim.state === 'dying' ? 0 : Math.sin(Date.now()/400)*5;
-          const alienImgs = [images.alien1, images.alien2, images.alien3]; const currentAlienImg = alienImgs[currentAlien % 3];
+          const alienImgs = [images.alien1, images.alien2, images.alien3];
+          const currentAlienImg = (currentAlien === 2 && isAlien3Critical)
+            ? images.alien3Critical
+            : alienImgs[currentAlien % 3];
           ctx.save(); ctx.globalAlpha = alienAnim.alpha;
           if (currentAlienImg && currentAlienImg.complete && currentAlienImg.naturalWidth !== 0) { ctx.drawImage(currentAlienImg, 600, 100 + float + alienAnim.y, 120, 160); } 
           else { const ac = ['#F0F', '#0F0', '#F60'][currentAlien%3]; ctx.fillStyle = ac; ctx.beginPath(); ctx.ellipse(650, 180+float+alienAnim.y, 45, 50, 0, 0, 6.28); ctx.fill(); }
+
+          if (currentAlien === 2) {
+            const alien3Hp = Math.max(0, battleAlien3MaxHp - alien3Hits);
+            const alien3HpRatio = alien3Hp / battleAlien3MaxHp;
+            const enemyBarX = 604;
+            const enemyBarY = 82 + float + alienAnim.y;
+            const enemyBarW = 112;
+            const enemyBarH = 12;
+            ctx.fillStyle = 'rgba(0,0,0,0.65)';
+            ctx.fillRect(enemyBarX, enemyBarY, enemyBarW, enemyBarH);
+            ctx.fillStyle = isAlien3Critical ? '#FF5C5C' : '#7CFC00';
+            ctx.fillRect(enemyBarX + 2, enemyBarY + 2, (enemyBarW - 4) * alien3HpRatio, enemyBarH - 4);
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(enemyBarX, enemyBarY, enemyBarW, enemyBarH);
+          }
           ctx.restore();
       }
       

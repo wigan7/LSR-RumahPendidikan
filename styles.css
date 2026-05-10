@@ -176,11 +176,17 @@
     .char-card.male { border-color: #00BFFF; }
     .char-card.female { border-color: #FF1493; }
 
-    .input-group { margin-bottom: 15px; text-align: left; }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+      width: 100%;
+      max-width: 560px;
+    }
     .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #FFD700; font-size: 16px; text-shadow: 2px 2px 4px #000; }
     .input-group input, .input-group select {
       width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #FFD700;
       background: #FFFFFF; font-size: 16px; color: #000; font-weight: bold;
+      box-sizing: border-box;
     }
 
     .start-btn {
@@ -367,9 +373,12 @@
       width: 94%;
       max-width: 1050px;
       margin-top: 12px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .mp-actions .start-btn {
+      width: min(100%, 640px);
     }
     
     .back-btn {
