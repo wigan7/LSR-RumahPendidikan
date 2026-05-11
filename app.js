@@ -849,6 +849,7 @@
     let explorationPhase = 'start';
     let infoFragments = [];
     let collectedFragments = 0;
+    let collectedFragmentsPlanetIndex = 0;
     let totalFragments = 5;
     let obstacles = [];
     let envParticles = [];
@@ -1755,6 +1756,7 @@
         astronaut.y = canvas.height / 2;
         explorationPhase = 'start';
         collectedFragments = 0;
+      collectedFragmentsPlanetIndex = currentPlanetIndex;
         infoFragments = [];
         obstacles = [];
         currentOxygen = 100;
@@ -1776,7 +1778,7 @@
         const visualProfile = getPlanetExplorationVisualProfile(p.name);
         const positions = [{x:150,y:150}, {x:650,y:150}, {x:100,y:450}, {x:700,y:450}, {x:400,y:100}];
         const mgTypes = getFragmentMinigameSequence(currentPlanetIndex, positions.length);
-        positions.forEach((pos, i) => infoFragments.push({x: pos.x, y: pos.y, radius: 30, collected: false, data: p.infoFragments[i], pulse: 0, type: p.artifactType, index: i, minigame: mgTypes[i]}));
+        positions.forEach((pos, i) => infoFragments.push({x: pos.x, y: pos.y, radius: 30, collected: false, data: p.infoFragments[i], pulse: 0, type: p.artifactType, index: i, planetIndex: currentPlanetIndex, minigame: mgTypes[i]}));
 
         const startPoint = { x: astronaut.x, y: astronaut.y };
         const pathTargets = positions.map(pos => ({ x: pos.x, y: pos.y }));
@@ -2793,9 +2795,15 @@
       const currentPlanetName = planets[safePlanetIndex]?.name || '-';
       const currentMissionTotal = Math.max(0, getPlanetMissionTotal(safePlanetIndex));
       const collectedFromFragments = Array.isArray(infoFragments)
-        ? infoFragments.filter((fragment) => fragment && fragment.collected).length
+        ? infoFragments.filter((fragment) => fragment && fragment.collected && fragment.planetIndex === safePlanetIndex).length
         : 0;
-      const currentMissionDone = Math.max(0, Math.min(currentMissionTotal, Math.max(collectedFragments, collectedFromFragments)));
+      const collectedCounterForCurrentPlanet = (collectedFragmentsPlanetIndex === safePlanetIndex)
+        ? collectedFragments
+        : 0;
+      const currentMissionDone = Math.max(
+        0,
+        Math.min(currentMissionTotal, Math.max(collectedCounterForCurrentPlanet, collectedFromFragments))
+      );
       const currentMissionRemaining = Math.max(0, currentMissionTotal - currentMissionDone);
 
       let completedBeforeCurrentPlanet = 0;
