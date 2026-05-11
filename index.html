@@ -21,21 +21,21 @@
            <div class="glass-panel">
              <div class="menu-left">
                  <div class="input-group">
-                   <label>NAMA PETUALANG:</label>
+                   <label>Nama Petualangmu:</label>
                    <input type="text" id="player-name" placeholder="Ketik namamu..." maxlength="15">
                  </div>
                  <div class="input-group">
-                   <label>TINGKAT KESULITAN:</label>
+                   <label>Tingkat Kesulitan:</label>
                    <select id="difficulty-select">
                      <option value="mudah">Mudah</option>
                      <option value="sedang" selected>Sedang</option>
                      <option value="sulit">Sulit</option>
                    </select>
                  </div>
-                 <button class="start-btn mt-2" onclick="submitMainMenu()">MULAI MISI</button>
-                 <button class="roadmap-btn mp-mode-btn" onclick="openMultiplayerMenu()">MODE MULTIPLAYER</button>
-                 <button class="roadmap-btn" onclick="showMenuRoadmap()">PETA MISI</button>
-                 <button class="roadmap-btn minigame-mode-btn" onclick="openMinigameTestMenu()">MODE MINIGAME (TEST)</button>
+                 <button class="start-btn mt-2" onclick="submitMainMenu()">Mulai Misi!</button>
+                 <button class="roadmap-btn mp-mode-btn" onclick="openMultiplayerMenu()">Mode Multiplayer</button>
+                 <button class="roadmap-btn" onclick="showMenuRoadmap()">Peta Misi</button>
+                 <button class="roadmap-btn minigame-mode-btn" onclick="openMinigameTestMenu()">Mode Minigame (Uji Coba)</button>
              </div>
              
              <div class="menu-right">
@@ -47,15 +47,15 @@
              </div>
 
              <div id="minigame-test-menu" class="minigame-test-menu">
-               <h3>MODE MINIGAME TEST</h3>
-               <p>Pilih planet tujuan untuk menguji variasi minigame.</p>
+               <h3>Mode Minigame — Uji Coba</h3>
+               <p>Pilih planet yang mau kamu uji minigame-nya ya.</p>
                <div class="input-group">
-                 <label>PLANET UJI:</label>
+                 <label>Planet Tujuan:</label>
                  <select id="test-planet-select"></select>
                </div>
                <div class="minigame-test-actions">
                  <button class="roadmap-btn" onclick="closeMinigameTestMenu()">Batal</button>
-                 <button class="start-btn" onclick="startMinigameTestMode()">Mulai Test</button>
+                 <button class="start-btn" onclick="startMinigameTestMode()">Mulai Uji Coba</button>
                </div>
              </div>
            </div>
@@ -63,13 +63,13 @@
 
          <!-- MULTIPLAYER SETUP MENU -->
          <div id="multiplayer-menu">
-          <button class="back-btn" onclick="closeMultiplayerMenu()">KEMBALI</button>
-          <h2 class="text-4xl font-bold text-yellow-400 mb-4 menu-heading">MULTIPLAYER SPLIT SCREEN</h2>
+          <button class="back-btn" onclick="closeMultiplayerMenu()">Kembali</button>
+          <h2 class="text-4xl font-bold text-yellow-400 mb-4 menu-heading">Multiplayer Split Screen</h2>
           <div class="multiplayer-panel">
             <div class="mp-side">
-              <h3 class="mp-title astronaut">PLAYER 1 - ASTRONOT</h3>
+              <h3 class="mp-title astronaut">Pemain 1 — Astronot</h3>
               <div class="input-group">
-                <label>NAMA PLAYER 1:</label>
+                <label>Nama Pemain 1:</label>
                 <input type="text" id="mp-p1-name" placeholder="Nama Astronot" maxlength="15">
               </div>
               <div class="mp-char-row">
@@ -84,9 +84,9 @@
               </div>
             </div>
             <div class="mp-side">
-              <h3 class="mp-title alien">PLAYER 2 - ALIEN</h3>
+              <h3 class="mp-title alien">Pemain 2 — Alien</h3>
               <div class="input-group">
-                <label>NAMA PLAYER 2:</label>
+                <label>Nama Pemain 2:</label>
                 <input type="text" id="mp-p2-name" placeholder="Nama Alien" maxlength="15">
               </div>
               <div class="mp-alien-picker">
@@ -97,23 +97,23 @@
             </div>
           </div>
           <div class="mp-actions">
-            <button class="start-btn" onclick="startMultiplayerGame()">MULAI PERTARUNGAN</button>
+            <button class="start-btn" onclick="startMultiplayerGame()">Mulai Pertarungan!</button>
           </div>
          </div>
 
          <!-- CHARACTER SELECTION SCREEN -->
          <div id="char-select-menu">
-            <button class="back-btn" onclick="closeCharSelect()">KEMBALI</button>
-            <h2 class="text-4xl font-bold text-white mb-2 menu-heading">PILIH KARAKTER PETUALANG</h2>
+            <button class="back-btn" onclick="closeCharSelect()">Kembali</button>
+            <h2 class="text-4xl font-bold text-white mb-2 menu-heading">Pilih Karakter Petualangmu</h2>
             <p class="text-yellow-400 font-bold text-lg menu-subheading">Siapa yang akan memimpin misi ini?</p>
             <div class="char-cards-wrapper">
                 <div class="char-card male" onclick="chooseCharacter('male')">
                     <img src="./assets/images/char-select-male.png">
-                    <div class="label">PETUALANG BOY</div>
+                    <div class="label">Petualang Cowok</div>
                 </div>
                 <div class="char-card female" onclick="chooseCharacter('female')">
                     <img src="./assets/images/char-select-female.png">
-                    <div class="label">PETUALANG GIRL</div>
+                    <div class="label">Petualang Cewek</div>
                 </div>
             </div>
          </div>

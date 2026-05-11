@@ -308,7 +308,7 @@
     function submitMainMenu() {
       SoundManager.play('click');
       let nameInput = document.getElementById('player-name').value;
-      if (!nameInput) { showInGameNotification("Mohon isi nama Petualang!"); return; }
+      if (!nameInput) { showInGameNotification("Yuk, isi dulu nama Petualangmu!"); return; }
       nameInput = filterProfanity(nameInput);
       const difficultyValue = (document.getElementById('difficulty-select')?.value || 'sedang');
       applyDifficulty(difficultyValue);
@@ -366,7 +366,7 @@
       isPaused = false;
       gameState = GameState.EXPLORATION;
       initExploration();
-      showInGameNotification(`Mode Minigame aktif di planet ${planets[safePlanetIndex].name}.`);
+      showInGameNotification(`Mode Minigame aktif di Planet ${planets[safePlanetIndex].name}. Selamat mencoba!`);
     }
 
     // --- GAME DATA PLANET & QUIZ BANK ---
@@ -833,7 +833,8 @@
     let currentPlanetIndex = 0;
     let playerHP = 100;
     let score = 0;
-    let isPaused = false; 
+    let isPaused = false;
+    let progressExpanded = false;
     let stats = { asteroidsDestroyed: 0, accuracy: 0, quizCorrect: 0, quizTotal: 0 };
 
     // Space Travel
@@ -1294,7 +1295,7 @@
       const p1Name = filterProfanity((document.getElementById('mp-p1-name')?.value || '').trim());
       const p2Name = filterProfanity((document.getElementById('mp-p2-name')?.value || '').trim());
 
-      if (!p1Name || !p2Name) { showInGameNotification('Mohon isi nama kedua pemain.'); return; }
+      if (!p1Name || !p2Name) { showInGameNotification('Isi dulu nama kedua pemain, ya!'); return; }
 
       mpBattle.players[0] = { name: p1Name, role: 'astronaut', gender: mpConfig.p1Gender, hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 };
       mpBattle.players[1] = { name: p2Name, role: 'alien', alienIndex: mpConfig.p2AlienIndex, hp: 10, maxHp: 10, streak: 0, bestStreak: 0, points: 0, wins: 0 };
@@ -1309,7 +1310,7 @@
       mpBattle.questions = [getNextMpQuestion(0), null];
       mpBattle.questions[1] = assignNextUniqueMpQuestion(1);
       mpBattle.effects = [];
-      mpBattle.feedback = 'Duel dimulai! Keduanya menjawab bersamaan.';
+      mpBattle.feedback = 'Duel dimulai! Keduanya menjawab secara bersamaan.';
       mpBattle.feedbackColor = '#00BFFF';
       mpBattle.resultText = '';
       SoundManager.playMultiplayerTheme();
@@ -1364,7 +1365,7 @@
             }
           } else {
             mpBattle.players[attacker].streak = 0;
-            mpBattle.feedback = `${mpBattle.players[attacker].name} SALAH! Soal baru untuk pemain ini`;
+            mpBattle.feedback = `${mpBattle.players[attacker].name} salah jawab! Soal baru muncul untuknya.`;
             mpBattle.feedbackColor = '#FF6666';
             SoundManager.play('wrong');
           }
@@ -1548,9 +1549,9 @@
       ctx.fillStyle = '#FFF';
       ctx.font = 'bold 14px Arial';
       ctx.textAlign = 'left';
-      ctx.fillText(`P1 Streak: ${mpBattle.players[0].streak} | Poin: ${mpBattle.players[0].points}`, 20, 84);
+      ctx.fillText(`P1 Kombo: ${mpBattle.players[0].streak} | Poin: ${mpBattle.players[0].points}`, 20, 84);
       ctx.textAlign = 'right';
-      ctx.fillText(`P2 Streak: ${mpBattle.players[1].streak} | Poin: ${mpBattle.players[1].points}`, canvas.width - 20, 84);
+      ctx.fillText(`P2 Kombo: ${mpBattle.players[1].streak} | Poin: ${mpBattle.players[1].points}`, canvas.width - 20, 84);
     }
 
     function drawMultiplayerResult() {
@@ -1559,7 +1560,7 @@
       ctx.fillStyle = '#FFD700';
       ctx.font = 'bold 48px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('MULTIPLAYER SELESAI', canvas.width / 2, 150);
+      ctx.fillText('PERTARUNGAN SELESAI!', canvas.width / 2, 150);
 
       ctx.fillStyle = '#00FF88';
       ctx.font = 'bold 40px Arial';
@@ -1590,6 +1591,28 @@
       else if (gameState === GameState.SPACE_TRAVEL || gameState === GameState.EXPLORATION || gameState === GameState.BATTLE) {
          if (pos.x > canvas.width - 140 && pos.x < canvas.width - 80 && pos.y < 80) { openInGameRoadmap(); return; }
          if (pos.x > canvas.width - 80 && pos.y < 80) { isPaused = !isPaused; SoundManager.play('click'); return; }
+      }
+      // Tap pada progress indicator (collapsed pill atau expanded panel)
+      {
+        const _hudVisible = gameState !== GameState.START && gameState !== GameState.MENU && gameState !== GameState.ROADMAP && gameState !== GameState.GAME_OVER && gameState !== GameState.WIN && gameState !== GameState.MULTIPLAYER_BATTLE && gameState !== GameState.MULTIPLAYER_RESULT;
+        if (_hudVisible) {
+          const _isBottomLeftPhase = gameState === GameState.SPACE_TRAVEL || gameState === GameState.EXPLORATION;
+          const _pillW = 180, _pillH = 38;
+          const _pillX = _isBottomLeftPhase ? 18 : (canvas.width / 2 - _pillW / 2);
+          const _pillY = _isBottomLeftPhase ? (canvas.height - 50) : 8;
+          const _panelW = 360, _panelH = 82;
+          const _panelX = _isBottomLeftPhase ? 18 : (canvas.width / 2 - _panelW / 2);
+          const _panelY = _isBottomLeftPhase ? (canvas.height - 140) : 8;
+          const _hx = progressExpanded ? _panelX : _pillX;
+          const _hy = progressExpanded ? _panelY : _pillY;
+          const _hw = progressExpanded ? _panelW : _pillW;
+          const _hh = progressExpanded ? _panelH : _pillH;
+          if (pos.x >= _hx && pos.x <= _hx + _hw && pos.y >= _hy && pos.y <= _hy + _hh) {
+            progressExpanded = !progressExpanded;
+            SoundManager.play('click');
+            return;
+          }
+        }
       }
       if (isPaused) return;
       if (gameState === GameState.ARTIFACT_INFO) { if (pos.y > canvas.height - 100) { closeArtifactInfo(); SoundManager.play('click'); } }
@@ -1657,7 +1680,7 @@
       if (gameState === GameState.EXPLORATION) {
         const interruptedScan = scanTarget && scanProgress > 8 && scanProgress < scanRequired;
         if (interruptedScan && scanReleaseHintCooldown <= 0) {
-          showInGameNotification('Tahan terus tombol SCAN sampai lingkaran penuh!', 1200);
+          showInGameNotification('Tahan tombol SCAN sampai lingkaran penuh ya!', 1200);
           scanReleaseHintCooldown = 1.2;
         }
         scanProgress = 0;
@@ -2074,13 +2097,13 @@
         const pool = ['0-1', '1-2', '1-4', '3-4', '4-5', '1-3', '2-4'];
         sensorCircuitRequiredEdges = pool.sort(() => Math.random() - 0.5).slice(0, 4 + Math.min(1, Math.floor(currentPlanetIndex / 4)));
         sensorCircuitEnergyBudget = sensorCircuitRequiredEdges.length + 2;
-        sensorCircuitHintText = 'Mode Aktivasi: hidupkan semua jalur wajib';
+        sensorCircuitHintText = 'Mode Aktivasi: hidupkan semua jalur wajib!';
       } else {
         const pairs = [[0, 5], [3, 2], [0, 2], [3, 5]];
         [sensorCircuitSource, sensorCircuitTarget] = pairs[Math.floor(Math.random() * pairs.length)];
         sensorCircuitRequiredEdges = [];
         sensorCircuitEnergyBudget = 5 + Math.floor(currentPlanetIndex / 3);
-        sensorCircuitHintText = `Mode Rute: sambungkan node ${sensorCircuitSource + 1} ke ${sensorCircuitTarget + 1}`;
+        sensorCircuitHintText = `Mode Rute: sambungkan node ${sensorCircuitSource + 1} ke node ${sensorCircuitTarget + 1}!`;
       }
 
       sensorCircuitEnergyUsed = 0;
@@ -2670,7 +2693,7 @@
       if (scanTarget && !hadScanTarget) {
         scanPromptFlash = 1;
         if (!scanPromptShown) {
-          showInGameNotification('Dekati artefak lalu tahan tombol hijau SCAN.', 2200);
+          showInGameNotification('Dekati artefak, lalu tahan tombol hijau SCAN ya!', 2200);
           scanPromptShown = true;
         }
       }
@@ -2713,7 +2736,7 @@
       let aLaserColor = '#FF0000'; let timeTaken = (Date.now() - quizStartTime) / 1000;
       const activeAlien = getBattleAlienForQuestion(currentQuestion);
       if(selectedOption === q.correct) {
-        battleMessage = "BENAR! SERANGAN LASER!"; let qScore = 1000;
+        battleMessage = "BENAR! Tembakkan laser!"; let qScore = 1000;
         if (timeTaken < 3) qScore += 500; else if (timeTaken < 5) qScore += 250;
         score += qScore; stats.quizCorrect++; SoundManager.play('correct'); SoundManager.play('shoot');
         battleEffects.push({type:'laser', sx: 190, sy: 160, ex: 660, ey: 180, t: 20, c: pLaserColor });
@@ -2744,7 +2767,7 @@
           }, 500);
         }
       } else {
-        battleMessage = "SALAH! KENA TEMBAK!"; playerHP -= gameBalance.quizWrongDamage; battleMistakes++; SoundManager.play('wrong'); SoundManager.play('hit');
+        battleMessage = "SALAH! Kena serangan balik!"; playerHP -= gameBalance.quizWrongDamage; battleMistakes++; SoundManager.play('wrong'); SoundManager.play('hit');
         battleEffects.push({type:'laser', sx: 610, sy: 180, ex: 140, ey: 180, t: 20, c: aLaserColor });
         setTimeout(() => { if(playerHP <= 0) { gameState = GameState.GAME_OVER; SoundManager.playGameOverTheme(); } else { selectedOption = -1; showQuestion = true; quizStartTime = Date.now(); } }, 1500);
       }
@@ -2806,55 +2829,106 @@
       const hudNameY = compactTopHud ? 22 : 30;
       const hudHpY = compactTopHud ? 44 : 60;
       const progress = getProgressSnapshot();
-      const progressPanelX = 18;
-      const progressPanelY = compactTopHud ? 56 : 72;
-      const progressPanelW = compactTopHud ? 336 : 360;
-      const progressBarW = progressPanelW - 20;
+      const progressPercent = Math.round(progress.globalProgressRatio * 100);
       ctx.fillStyle = '#FFF'; ctx.font = compactTopHud ? 'bold 16px Arial' : 'bold 20px Arial'; ctx.textAlign = 'left'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4; 
       ctx.fillText(`Petualang: ${playerData.name}`, 20, hudNameY); 
       const displayHP = Math.max(0, Math.min(100, Math.round(playerHP)));
       ctx.fillStyle = playerHP > 50 ? '#0F0' : (playerHP > 20 ? '#FF0' : '#F00'); ctx.fillText(`HP: ${displayHP}%`, 20, hudHpY); 
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.62)';
-      ctx.beginPath();
-      ctx.roundRect(progressPanelX, progressPanelY, progressPanelW, 76, 10);
-      ctx.fill();
-      ctx.strokeStyle = '#7FDFFF';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+      // --- PROGRESS INDICATOR (collapsed pill / expanded panel) ---
+      // Sembunyikan saat minigame / reading agar tidak mengganggu
+      if (!isMinigameState && gameState !== GameState.READING) {
+      const isBottomLeftPhase = gameState === GameState.SPACE_TRAVEL || gameState === GameState.EXPLORATION;
+      const pillW = 180, pillH = 38;
+      const pillX = isBottomLeftPhase ? 18 : (canvas.width / 2 - pillW / 2);
+      const pillY = isBottomLeftPhase ? (canvas.height - 50) : 8;
+      const progressPanelW = 360;
+      const progressBarW = progressPanelW - 20;
+      const progressPanelX = isBottomLeftPhase ? 18 : (canvas.width / 2 - progressPanelW / 2);
+      const progressPanelY = isBottomLeftPhase ? (canvas.height - 140) : 8;
 
-      ctx.fillStyle = '#BFEFFF';
-      ctx.font = 'bold 14px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText(`Planet ${progress.planetLabel}: ${progress.currentPlanetName}`, progressPanelX + 10, progressPanelY + 21);
-      ctx.fillText(`Misi: ${progress.currentMissionDone}/${progress.currentMissionTotal} selesai (sisa ${progress.currentMissionRemaining})`, progressPanelX + 10, progressPanelY + 40);
+      if (progressExpanded) {
+        // Full detail panel
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.82)';
+        ctx.beginPath();
+        ctx.roundRect(progressPanelX, progressPanelY, progressPanelW, 82, 10);
+        ctx.fill();
+        ctx.strokeStyle = '#7FDFFF';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
 
-      ctx.fillStyle = '#2F3A52';
-      ctx.beginPath();
-      ctx.roundRect(progressPanelX + 10, progressPanelY + 52, progressBarW, 14, 7);
-      ctx.fill();
+        ctx.fillStyle = '#BFEFFF';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'left';
+        ctx.shadowColor = 'black'; ctx.shadowBlur = 3;
+        ctx.fillText(`Planet ${progress.planetLabel}: ${progress.currentPlanetName}`, progressPanelX + 10, progressPanelY + 21);
+        ctx.fillText(`Misi: ${progress.currentMissionDone}/${progress.currentMissionTotal} selesai (sisa ${progress.currentMissionRemaining})`, progressPanelX + 10, progressPanelY + 40);
 
-      const filledProgressBarWidth = Math.max(0, Math.min(progressBarW, progressBarW * progress.globalProgressRatio));
-      ctx.fillStyle = '#00D58B';
-      ctx.beginPath();
-      ctx.roundRect(progressPanelX + 10, progressPanelY + 52, filledProgressBarWidth, 14, 7);
-      ctx.fill();
+        ctx.fillStyle = '#2F3A52';
+        ctx.beginPath();
+        ctx.roundRect(progressPanelX + 10, progressPanelY + 52, progressBarW, 14, 7);
+        ctx.fill();
+        const filledProgressBarWidth = Math.max(0, Math.min(progressBarW, progressBarW * progress.globalProgressRatio));
+        ctx.fillStyle = '#00D58B';
+        ctx.beginPath();
+        ctx.roundRect(progressPanelX + 10, progressPanelY + 52, filledProgressBarWidth, 14, 7);
+        ctx.fill();
 
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(
-        `Progres Total ${Math.round(progress.globalProgressRatio * 100)}% (${progress.completedMissionCount}/${progress.totalMissionCount})`,
-        progressPanelX + (progressPanelW / 2),
-        progressPanelY + 63
-      );
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(
+          `Progres Keseluruhan: ${progressPercent}% (${progress.completedMissionCount}/${progress.totalMissionCount} misi)`,
+          progressPanelX + progressPanelW / 2,
+          progressPanelY + 68
+        );
+      } else {
+        // Collapsed pill — label + mini bar + persentase
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 14);
+        ctx.fill();
+        ctx.strokeStyle = '#00D58B';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Label kecil
+        ctx.fillStyle = '#AAFFDD';
+        ctx.font = 'bold 10px Arial';
+        ctx.textAlign = 'left';
+        ctx.shadowColor = 'black'; ctx.shadowBlur = 3;
+        ctx.fillText('Progres Keseluruhan', pillX + 8, pillY + 13);
+
+        // Mini progress bar
+        const miniBarX = pillX + 8;
+        const miniBarY = pillY + 22;
+        const miniBarW = 110;
+        const miniBarH = 7;
+        ctx.fillStyle = '#2F3A52';
+        ctx.beginPath();
+        ctx.roundRect(miniBarX, miniBarY, miniBarW, miniBarH, 3);
+        ctx.fill();
+        const filledMini = Math.max(0, Math.min(miniBarW, miniBarW * progress.globalProgressRatio));
+        ctx.fillStyle = '#00D58B';
+        ctx.beginPath();
+        ctx.roundRect(miniBarX, miniBarY, filledMini, miniBarH, 3);
+        ctx.fill();
+
+        // Teks persentase
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'right';
+        ctx.shadowColor = 'black'; ctx.shadowBlur = 3;
+        ctx.fillText(`${progressPercent}%`, pillX + pillW - 8, pillY + 30);
+      }
+      } // end: !isMinigameState && gameState !== READING
       
       // --- PERBAIKAN POSISI SKOR ---
       ctx.fillStyle = '#FFD700'; 
       if (gameState === GameState.BATTLE) {
-          // Khusus Battle: Taruh di atas (y=50) karena bawah penuh tombol kuis
-        ctx.textAlign = 'center';
-          ctx.fillText(`Skor: ${score}`, canvas.width / 2, 50);
+          // Battle: kanan atas agar tidak bertubrukan dengan progress di tengah atas
+        ctx.textAlign = 'right';
+          ctx.fillText(`Skor: ${score}`, canvas.width - 20, 26);
       } else if (isMinigameState) {
         ctx.textAlign = 'right';
         ctx.fillText(`Skor: ${score}`, canvas.width - 20, 26);
@@ -2873,14 +2947,14 @@
               ctx.fillRect(canvas.width - 50, 30, 8, 20); ctx.fillRect(canvas.width - 38, 30, 8, 20); 
           } 
           ctx.fillStyle = 'rgba(30, 144, 255, 0.6)'; ctx.beginPath(); ctx.arc(canvas.width - 110, 40, 30, 0, 6.28); ctx.fill(); 
-          ctx.fillStyle = '#FFF'; ctx.font = 'bold 14px Arial'; ctx.textAlign='center'; ctx.fillText('MAP', canvas.width - 110, 45); 
+          ctx.fillStyle = '#FFF'; ctx.font = 'bold 14px Arial'; ctx.textAlign='center'; ctx.fillText('PETA', canvas.width - 110, 45); 
       } 
       ctx.restore(); 
       if (isPaused) { ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0,0,canvas.width, canvas.height); ctx.fillStyle = '#FFF'; ctx.textAlign = 'center'; ctx.font = 'bold 40px Arial'; ctx.fillText("PAUSED", canvas.width/2, canvas.height/2); } 
     }
 
-    function drawStart() { if (images.startBg.complete && images.startBg.naturalWidth !== 0) ctx.drawImage(images.startBg, 0, 0, canvas.width, canvas.height); else { ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height); } const pulse = Math.abs(Math.sin(Date.now() / 500)); ctx.globalAlpha = 0.5 + (pulse * 0.5); ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.beginPath(); ctx.roundRect(canvas.width/2 - 300, canvas.height - 150, 600, 60, 30); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center'; ctx.fillText("TAP DIMANA SAJA UNTUK MEMULAI PERMAINAN", canvas.width/2, canvas.height - 110); ctx.globalAlpha = 1.0; }
-    function drawSpaceTravel() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const shipBob = Math.sin(Date.now()/200)*3; let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, ship.x, ship.y, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(ship.x, ship.y, ship.width, ship.height); } bullets.forEach(b => { ctx.shadowBlur=10; ctx.shadowColor='#0FF'; ctx.fillStyle='#0FF'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.shadowBlur=0; }); asteroids.forEach(a => { ctx.save(); ctx.translate(a.x+a.w/2, a.y+a.h/2); ctx.rotate(a.r); const astImg = getAsteroidRenderImage(a); if (astImg && astImg.complete && astImg.naturalWidth !== 0) { if (a.hitTimer > 0) { ctx.globalAlpha = 0.7; ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(-a.w/2, -a.h/2, a.w, a.h); ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = 'source-over'; } else { ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); } } else { ctx.fillStyle = a.hitTimer>0 ? '#FFF' : '#5C4033'; ctx.beginPath(); ctx.arc(0,0, a.w/2, 0, 6.28); ctx.fill(); ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(-a.w*0.2, -a.h*0.2, a.w*0.15, 0, 6.28); ctx.fill(); } ctx.restore(); }); particles.forEach(p => { ctx.fillStyle = p.c; ctx.globalAlpha = p.life/20; ctx.beginPath(); ctx.arc(p.x, p.y, 2+Math.random()*2, 0, 6.28); ctx.fill(); ctx.globalAlpha=1.0; }); floatingTexts.forEach(t => { ctx.fillStyle = t.color; ctx.globalAlpha = t.life/60; ctx.font = 'bold 20px Arial'; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); ctx.globalAlpha=1.0; }); if (planets[currentPlanetIndex].envType === 'heat') { ctx.fillStyle = `rgba(255, 50, 0, ${0.1 + Math.sin(Date.now()/500)*0.1})`; ctx.fillRect(0,0,canvas.width, canvas.height); } if (planets[currentPlanetIndex].envType === 'ice') { const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 300, canvas.width/2, canvas.height/2, 600); grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(1, 'rgba(200,240,255,0.4)'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); } drawHUD(); if (combo>1) { ctx.fillStyle='#FFD700'; ctx.textAlign='left'; ctx.font='bold 24px Arial'; ctx.fillText(`COMBO x${combo}`, 20, 170); } }
+    function drawStart() { if (images.startBg.complete && images.startBg.naturalWidth !== 0) ctx.drawImage(images.startBg, 0, 0, canvas.width, canvas.height); else { ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height); } const pulse = Math.abs(Math.sin(Date.now() / 500)); ctx.globalAlpha = 0.5 + (pulse * 0.5); ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.beginPath(); ctx.roundRect(canvas.width/2 - 300, canvas.height - 150, 600, 60, 30); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center'; ctx.fillText("Ketuk di mana saja untuk mulai petualangan!", canvas.width/2, canvas.height - 110); ctx.globalAlpha = 1.0; }
+    function drawSpaceTravel() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const shipBob = Math.sin(Date.now()/200)*3; let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, ship.x, ship.y, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(ship.x, ship.y, ship.width, ship.height); } bullets.forEach(b => { ctx.shadowBlur=10; ctx.shadowColor='#0FF'; ctx.fillStyle='#0FF'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.shadowBlur=0; }); asteroids.forEach(a => { ctx.save(); ctx.translate(a.x+a.w/2, a.y+a.h/2); ctx.rotate(a.r); const astImg = getAsteroidRenderImage(a); if (astImg && astImg.complete && astImg.naturalWidth !== 0) { if (a.hitTimer > 0) { ctx.globalAlpha = 0.7; ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(-a.w/2, -a.h/2, a.w, a.h); ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = 'source-over'; } else { ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); } } else { ctx.fillStyle = a.hitTimer>0 ? '#FFF' : '#5C4033'; ctx.beginPath(); ctx.arc(0,0, a.w/2, 0, 6.28); ctx.fill(); ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(-a.w*0.2, -a.h*0.2, a.w*0.15, 0, 6.28); ctx.fill(); } ctx.restore(); }); particles.forEach(p => { ctx.fillStyle = p.c; ctx.globalAlpha = p.life/20; ctx.beginPath(); ctx.arc(p.x, p.y, 2+Math.random()*2, 0, 6.28); ctx.fill(); ctx.globalAlpha=1.0; }); floatingTexts.forEach(t => { ctx.fillStyle = t.color; ctx.globalAlpha = t.life/60; ctx.font = 'bold 20px Arial'; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); ctx.globalAlpha=1.0; }); if (planets[currentPlanetIndex].envType === 'heat') { ctx.fillStyle = `rgba(255, 50, 0, ${0.1 + Math.sin(Date.now()/500)*0.1})`; ctx.fillRect(0,0,canvas.width, canvas.height); } if (planets[currentPlanetIndex].envType === 'ice') { const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 300, canvas.width/2, canvas.height/2, 600); grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(1, 'rgba(200,240,255,0.4)'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); } drawHUD(); if (combo>1) { ctx.fillStyle='#FFD700'; ctx.textAlign='left'; ctx.font='bold 24px Arial'; ctx.fillText(`KOMBO x${combo}`, 20, 170); } }
     function drawApproachingPlanet() {
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2936,7 +3010,7 @@
       ctx.fillText(`Mendekati Planet ${p.name}...`, canvas.width / 2, canvas.height / 2 - 80);
       ctx.fillStyle = '#FFF';
       ctx.font = '18px Arial';
-      ctx.fillText(`Mendarat dalam ${Math.ceil(approachTimer)}...`, canvas.width / 2, canvas.height / 2 - 40);
+      ctx.fillText(`Mendarat dalam ${Math.ceil(approachTimer)} detik...`, canvas.width / 2, canvas.height / 2 - 40);
 
       const panelW = 470;
       const panelH = 136;
@@ -3084,7 +3158,7 @@
       ctx.strokeRect(20, 20, 130, 50);
       ctx.fillStyle = '#FFF';
       ctx.font = 'bold 18px Arial';
-      ctx.fillText("KEMBALI", 85, 52);
+      ctx.fillText("Kembali", 85, 52);
     }
     function drawExploration() {
       const planet = planets[currentPlanetIndex];
@@ -3264,11 +3338,11 @@
         ctx.textAlign = 'center';
         ctx.font = 'bold 12px Arial';
         if (isScanButtonPressed) {
-          ctx.fillText('MEN-SCAN', btnX, btnY - 5);
+          ctx.fillText('MEMINDAI', btnX, btnY - 5);
           ctx.fillText(`${Math.round(progressRatio * 100)}%`, btnX, btnY + 15);
         } else {
           ctx.fillText('TAHAN', btnX, btnY - 5);
-          ctx.fillText('SCAN', btnX, btnY + 15);
+          ctx.fillText('PINDAI', btnX, btnY + 15);
         }
 
         ctx.font = 'bold 13px Arial';
@@ -3427,11 +3501,11 @@
     }
 
     function drawSpectrometer() {
-      drawMinigameFrame('KALIBRASI SPEKTROMETER', 'Selaraskan Wave, Gain, Focus lalu tekan Kunci.', '#6ED6FF');
+      drawMinigameFrame('KALIBRASI SPEKTROMETER', 'Selaraskan Gelombang, Penguatan, dan Fokus, lalu tekan Kunci!', '#6ED6FF');
 
       spectrometerTolerance = Math.max(3, 8 - Math.floor(currentPlanetIndex / 2));
-      drawSliderControl('Wave', 'wave', spectrometerCurrent.wave, spectrometerTarget.wave, 220, spectrometerTolerance);
-      drawSliderControl('Gain', 'gain', spectrometerCurrent.gain, spectrometerTarget.gain, 300, spectrometerTolerance);
+      drawSliderControl('Gelombang', 'wave', spectrometerCurrent.wave, spectrometerTarget.wave, 220, spectrometerTolerance);
+      drawSliderControl('Penguatan', 'gain', spectrometerCurrent.gain, spectrometerTarget.gain, 300, spectrometerTolerance);
       drawSliderControl('Focus', 'focus', spectrometerCurrent.focus, spectrometerTarget.focus, 380, spectrometerTolerance, 'spectFocus');
 
       const lockW = 300;
@@ -3475,7 +3549,7 @@
       ctx.fillText('PENYELARASAN SINYAL', canvas.width / 2, 60);
       ctx.font = '18px Arial';
       ctx.fillStyle = '#FFF';
-      ctx.fillText('Geser slider sampai sinyal jernih!', canvas.width / 2, 100);
+      ctx.fillText('Geser pengatur sampai sinyal jernih!', canvas.width / 2, 100);
       ctx.fillStyle = '#000';
       ctx.fillRect(frameX, frameY, frameW, frameH);
       ctx.strokeStyle = '#0F0';
@@ -3527,7 +3601,7 @@
       ctx.fillText('PENGEBORAN INTI', canvas.width / 2, 60);
       ctx.fillStyle = '#FFF';
       ctx.font = '18px Arial';
-      ctx.fillText('Tahan untuk mengebor. Lepas jika panas!', canvas.width / 2, 100);
+      ctx.fillText('Tahan untuk mengebor, lepas kalau sudah panas!', canvas.width / 2, 100);
 
       ctx.fillStyle = '#000';
       ctx.fillRect(rightGaugeX, gaugeY, gaugeW, gaugeH);
@@ -3712,12 +3786,12 @@
     }
 
     function drawReactor() {
-      drawMinigameFrame('STABILKAN REAKTOR MINI', 'Range target berubah di tiap langkah stabil.', '#FF8F66');
+      drawMinigameFrame('STABILKAN REAKTOR MINI', 'Rentang target berubah di tiap langkah stabil.', '#FF8F66');
 
       const rows = [
-        { key: 'temp', label: 'Temperature', y: 220, color: '#FF7A59' },
-        { key: 'pressure', label: 'Pressure', y: 310, color: '#5DA9FF' },
-        { key: 'flow', label: 'Flow Rate', y: 400, color: '#7CFC00' }
+        { key: 'temp', label: 'Suhu', y: 220, color: '#FF7A59' },
+        { key: 'pressure', label: 'Tekanan', y: 310, color: '#5DA9FF' },
+        { key: 'flow', label: 'Laju Aliran', y: 400, color: '#7CFC00' }
       ];
 
       rows.forEach((row) => {
@@ -3816,9 +3890,9 @@
       ctx.fillRect(progressX, progressY, progressFill, progressH);
       drawHUD();
     }
-    function drawArtifactInfo() { ctx.fillStyle = 'rgba(0,0,0,0.95)'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 30px Arial'; ctx.textAlign='center'; ctx.fillText("ARTEFAK DITEMUKAN!", canvas.width/2, 100); ctx.beginPath(); ctx.arc(canvas.width/2, 250, 100, 0, 6.28); ctx.fillStyle='#FFD700'; ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = '20px Arial'; const text = activeFragment.data.detail; const words = text.split(' '); let line = ''; let y = 400; for(let n = 0; n < words.length; n++) { let testLine = line + words[n] + ' '; if(ctx.measureText(testLine).width > 600 && n > 0) { ctx.fillText(line, canvas.width/2, y); line = ' ' + words[n] + ' '; y += 30; } else { line = testLine; } } ctx.fillText(line, canvas.width/2, y); ctx.fillStyle = '#4CAF50'; ctx.beginPath(); ctx.roundRect(canvas.width/2 - 100, canvas.height - 100, 200, 50, 25); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Arial'; ctx.fillText("LANJUT", canvas.width/2, canvas.height - 68); ctx.font = '16px Arial'; ctx.fillStyle='#AAA'; ctx.fillText(`Otomatis lanjut dalam ${Math.ceil(artifactInfoTimer)}s`, canvas.width/2, canvas.height - 20); }
-    function drawUpgradeScreen() { if (images.upgradeBg && images.upgradeBg.complete && images.upgradeBg.naturalWidth !== 0) { ctx.drawImage(images.upgradeBg, 0, 0, canvas.width, canvas.height); } else { ctx.fillStyle = '#000033'; ctx.fillRect(0,0,canvas.width, canvas.height); } ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 40px Arial'; ctx.textAlign='center'; ctx.shadowColor = 'black'; ctx.shadowBlur = 10; ctx.fillText("UPGRADE PESAWAT!", canvas.width/2, 150); ctx.fillStyle = '#FFF'; ctx.font = '24px Arial'; ctx.fillText("Senjata Pesawat Ditingkatkan", canvas.width/2, 200); let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, canvas.width/2 - 100, canvas.height/2 - 100, 200, 200); } ctx.font = '18px Arial'; ctx.fillStyle='#AAA'; ctx.fillText(`Lanjut dalam ${Math.ceil(upgradeTimer)}...`, canvas.width/2, 500); ctx.shadowBlur = 0; }
-    function drawReadingPhase() { const planet = planets[currentPlanetIndex]; const grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, '#111'); grad.addColorStop(1, '#000'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); ctx.fillStyle = 'rgba(20, 20, 40, 0.9)'; ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(50, 50, canvas.width - 100, canvas.height - 180, 20); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center'; ctx.fillText(`FAKTA UNIK: ${planet.name.toUpperCase()}`, canvas.width/2, 100); ctx.fillStyle = readingTimer < 10 ? '#FF4500' : '#00BFFF'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'right'; ctx.fillText(`Waktu Baca: ${Math.ceil(readingTimer)}s`, canvas.width - 70, 100); ctx.fillStyle = '#FFF'; ctx.font = '18px Arial'; ctx.textAlign = 'left'; let yPos = 160; const maxWidth = canvas.width - 140; infoFragments.forEach((f, idx) => { const text = `${idx+1}. ${f.data.detail}`; const words = text.split(' '); let line = ''; for(let n=0; n<words.length; n++) { const testLine = line + words[n] + ' '; if(ctx.measureText(testLine).width > maxWidth && n > 0) { ctx.fillText(line, 70, yPos); line = '   ' + words[n] + ' '; yPos += 25; } else { line = testLine; } } ctx.fillText(line, 70, yPos); yPos += 35; }); const btnW = 200, btnH = 50, btnX = canvas.width/2 - btnW/2, btnY = canvas.height - 100; const pulse = Math.abs(Math.sin(Date.now() / 300)) * 5; ctx.fillStyle = '#4CAF50'; ctx.beginPath(); ctx.roundRect(btnX - pulse/2, btnY - pulse/2, btnW + pulse, btnH + pulse, 25); ctx.fill(); ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center'; ctx.fillText("SIAP TEMPUR", canvas.width/2, btnY + 32); drawHUD(); }
+    function drawArtifactInfo() { ctx.fillStyle = 'rgba(0,0,0,0.95)'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 30px Arial'; ctx.textAlign='center'; ctx.fillText("ARTEFAK DITEMUKAN!", canvas.width/2, 100); ctx.beginPath(); ctx.arc(canvas.width/2, 250, 100, 0, 6.28); ctx.fillStyle='#FFD700'; ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = '20px Arial'; const text = activeFragment.data.detail; const words = text.split(' '); let line = ''; let y = 400; for(let n = 0; n < words.length; n++) { let testLine = line + words[n] + ' '; if(ctx.measureText(testLine).width > 600 && n > 0) { ctx.fillText(line, canvas.width/2, y); line = ' ' + words[n] + ' '; y += 30; } else { line = testLine; } } ctx.fillText(line, canvas.width/2, y); ctx.fillStyle = '#4CAF50'; ctx.beginPath(); ctx.roundRect(canvas.width/2 - 100, canvas.height - 100, 200, 50, 25); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Arial'; ctx.fillText("LANJUT", canvas.width/2, canvas.height - 68); ctx.font = '16px Arial'; ctx.fillStyle='#AAA'; ctx.fillText(`Otomatis lanjut dalam ${Math.ceil(artifactInfoTimer)} detik...`, canvas.width/2, canvas.height - 20); }
+    function drawUpgradeScreen() { if (images.upgradeBg && images.upgradeBg.complete && images.upgradeBg.naturalWidth !== 0) { ctx.drawImage(images.upgradeBg, 0, 0, canvas.width, canvas.height); } else { ctx.fillStyle = '#000033'; ctx.fillRect(0,0,canvas.width, canvas.height); } ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 40px Arial'; ctx.textAlign='center'; ctx.shadowColor = 'black'; ctx.shadowBlur = 10; ctx.fillText("PESAWAT DITINGKATKAN!", canvas.width/2, 150); ctx.fillStyle = '#FFF'; ctx.font = '24px Arial'; ctx.fillText("Senjata pesawatmu kini lebih kuat!", canvas.width/2, 200); let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, canvas.width/2 - 100, canvas.height/2 - 100, 200, 200); } ctx.font = '18px Arial'; ctx.fillStyle='#AAA'; ctx.fillText(`Lanjut dalam ${Math.ceil(upgradeTimer)} detik...`, canvas.width/2, 500); ctx.shadowBlur = 0; }
+    function drawReadingPhase() { const planet = planets[currentPlanetIndex]; const grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, '#111'); grad.addColorStop(1, '#000'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); ctx.fillStyle = 'rgba(20, 20, 40, 0.9)'; ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(50, 50, canvas.width - 100, canvas.height - 180, 20); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center'; ctx.fillText(`FAKTA UNIK: ${planet.name.toUpperCase()}`, canvas.width/2, 100); ctx.fillStyle = readingTimer < 10 ? '#FF4500' : '#00BFFF'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'right'; ctx.fillText(`Waktu Baca: ${Math.ceil(readingTimer)} dtk`, canvas.width - 70, 100); ctx.fillStyle = '#FFF'; ctx.font = '18px Arial'; ctx.textAlign = 'left'; let yPos = 160; const maxWidth = canvas.width - 140; infoFragments.forEach((f, idx) => { const text = `${idx+1}. ${f.data.detail}`; const words = text.split(' '); let line = ''; for(let n=0; n<words.length; n++) { const testLine = line + words[n] + ' '; if(ctx.measureText(testLine).width > maxWidth && n > 0) { ctx.fillText(line, 70, yPos); line = '   ' + words[n] + ' '; yPos += 25; } else { line = testLine; } } ctx.fillText(line, 70, yPos); yPos += 35; }); const btnW = 200, btnH = 50, btnX = canvas.width/2 - btnW/2, btnY = canvas.height - 100; const pulse = Math.abs(Math.sin(Date.now() / 300)) * 5; ctx.fillStyle = '#4CAF50'; ctx.beginPath(); ctx.roundRect(btnX - pulse/2, btnY - pulse/2, btnW + pulse, btnH + pulse, 25); ctx.fill(); ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center'; ctx.fillText("SIAP TEMPUR", canvas.width/2, btnY + 32); drawHUD(); }
 
     function drawBattle() {
       const planet = planets[currentPlanetIndex];
