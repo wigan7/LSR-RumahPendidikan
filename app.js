@@ -284,7 +284,7 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    let playerData = { name: "Ranger", gender: "male" };
+    let playerData = { name: "Petualang", gender: "male" };
 
     let notificationTimer = null;
     function showInGameNotification(message, duration = 1800) {
@@ -308,7 +308,7 @@
     function submitMainMenu() {
       SoundManager.play('click');
       let nameInput = document.getElementById('player-name').value;
-      if (!nameInput) { showInGameNotification("Mohon isi nama Ranger!"); return; }
+      if (!nameInput) { showInGameNotification("Mohon isi nama Petualang!"); return; }
       nameInput = filterProfanity(nameInput);
       const difficultyValue = (document.getElementById('difficulty-select')?.value || 'sedang');
       applyDifficulty(difficultyValue);
@@ -2463,7 +2463,7 @@
         } 
     }
     
-    function getRank(s) { if(s>85000) return "LEGENDA ALAM SEMESTA"; if(s>75000) return "Pahlawan Tata Surya"; if(s>60000) return "Kapten Galaksi"; if(s>45000) return "Komandan Misi"; if(s>30000) return "Pilot Mahir"; if(s>15000) return "Penjelajah Bintang"; return "Ranger Taruna"; }
+    function getRank(s) { if(s>85000) return "LEGENDA ALAM SEMESTA"; if(s>75000) return "Pahlawan Tata Surya"; if(s>60000) return "Kapten Galaksi"; if(s>45000) return "Komandan Misi"; if(s>30000) return "Pilot Mahir"; if(s>15000) return "Penjelajah Bintang"; return "Taruna Petualang"; }
     function showMenuRoadmap() { SoundManager.play('click'); document.getElementById('main-menu').style.display = 'none'; returnState = GameState.MENU; gameState = GameState.ROADMAP; }
     function openInGameRoadmap() { SoundManager.play('click'); returnState = gameState; isPaused = true; gameState = GameState.ROADMAP; }
     function closeRoadmap() { SoundManager.play('click'); if (returnState === GameState.MENU) { document.getElementById('main-menu').style.display = 'flex'; gameState = GameState.MENU; SoundManager.playMenuTheme(); } else { gameState = returnState; isPaused = false; } }
@@ -2757,6 +2757,47 @@
       advanceBattleQuestion();
     }
 
+    function getPlanetMissionTotal(planetIndex) {
+      const safeIndex = Math.max(0, Math.min(planets.length - 1, planetIndex));
+      const planet = planets[safeIndex];
+      if (!planet || !Array.isArray(planet.infoFragments)) return 0;
+      return planet.infoFragments.length;
+    }
+
+    function getProgressSnapshot() {
+      const totalPlanets = planets.length;
+      const safePlanetIndex = Math.max(0, Math.min(totalPlanets - 1, currentPlanetIndex));
+      const currentPlanetName = planets[safePlanetIndex]?.name || '-';
+      const currentMissionTotal = Math.max(0, getPlanetMissionTotal(safePlanetIndex));
+      const collectedFromFragments = Array.isArray(infoFragments)
+        ? infoFragments.filter((fragment) => fragment && fragment.collected).length
+        : 0;
+      const currentMissionDone = Math.max(0, Math.min(currentMissionTotal, Math.max(collectedFragments, collectedFromFragments)));
+      const currentMissionRemaining = Math.max(0, currentMissionTotal - currentMissionDone);
+
+      let completedBeforeCurrentPlanet = 0;
+      for (let i = 0; i < safePlanetIndex; i++) {
+        completedBeforeCurrentPlanet += getPlanetMissionTotal(i);
+      }
+
+      const totalMissionCount = planets.reduce((total, _, index) => total + getPlanetMissionTotal(index), 0);
+      const completedMissionCount = Math.max(
+        0,
+        Math.min(totalMissionCount, completedBeforeCurrentPlanet + currentMissionDone)
+      );
+
+      return {
+        planetLabel: `${safePlanetIndex + 1}/${Math.max(1, totalPlanets)}`,
+        currentPlanetName,
+        currentMissionDone,
+        currentMissionTotal,
+        currentMissionRemaining,
+        completedMissionCount,
+        totalMissionCount,
+        globalProgressRatio: totalMissionCount > 0 ? (completedMissionCount / totalMissionCount) : 0
+      };
+    }
+
     // --- DRAWING ---
     function drawHUD() { 
       ctx.save(); 
@@ -2764,10 +2805,49 @@
       const compactTopHud = gameState === GameState.READING || isMinigameState;
       const hudNameY = compactTopHud ? 22 : 30;
       const hudHpY = compactTopHud ? 44 : 60;
+      const progress = getProgressSnapshot();
+      const progressPanelX = 18;
+      const progressPanelY = compactTopHud ? 56 : 72;
+      const progressPanelW = compactTopHud ? 336 : 360;
+      const progressBarW = progressPanelW - 20;
       ctx.fillStyle = '#FFF'; ctx.font = compactTopHud ? 'bold 16px Arial' : 'bold 20px Arial'; ctx.textAlign = 'left'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4; 
-      ctx.fillText(`Ranger: ${playerData.name}`, 20, hudNameY); 
+      ctx.fillText(`Petualang: ${playerData.name}`, 20, hudNameY); 
       const displayHP = Math.max(0, Math.min(100, Math.round(playerHP)));
       ctx.fillStyle = playerHP > 50 ? '#0F0' : (playerHP > 20 ? '#FF0' : '#F00'); ctx.fillText(`HP: ${displayHP}%`, 20, hudHpY); 
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.62)';
+      ctx.beginPath();
+      ctx.roundRect(progressPanelX, progressPanelY, progressPanelW, 76, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#7FDFFF';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#BFEFFF';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Planet ${progress.planetLabel}: ${progress.currentPlanetName}`, progressPanelX + 10, progressPanelY + 21);
+      ctx.fillText(`Misi: ${progress.currentMissionDone}/${progress.currentMissionTotal} selesai (sisa ${progress.currentMissionRemaining})`, progressPanelX + 10, progressPanelY + 40);
+
+      ctx.fillStyle = '#2F3A52';
+      ctx.beginPath();
+      ctx.roundRect(progressPanelX + 10, progressPanelY + 52, progressBarW, 14, 7);
+      ctx.fill();
+
+      const filledProgressBarWidth = Math.max(0, Math.min(progressBarW, progressBarW * progress.globalProgressRatio));
+      ctx.fillStyle = '#00D58B';
+      ctx.beginPath();
+      ctx.roundRect(progressPanelX + 10, progressPanelY + 52, filledProgressBarWidth, 14, 7);
+      ctx.fill();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(
+        `Progres Total ${Math.round(progress.globalProgressRatio * 100)}% (${progress.completedMissionCount}/${progress.totalMissionCount})`,
+        progressPanelX + (progressPanelW / 2),
+        progressPanelY + 63
+      );
       
       // --- PERBAIKAN POSISI SKOR ---
       ctx.fillStyle = '#FFD700'; 
@@ -2800,7 +2880,7 @@
     }
 
     function drawStart() { if (images.startBg.complete && images.startBg.naturalWidth !== 0) ctx.drawImage(images.startBg, 0, 0, canvas.width, canvas.height); else { ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height); } const pulse = Math.abs(Math.sin(Date.now() / 500)); ctx.globalAlpha = 0.5 + (pulse * 0.5); ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.beginPath(); ctx.roundRect(canvas.width/2 - 300, canvas.height - 150, 600, 60, 30); ctx.fill(); ctx.fillStyle = '#FFF'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center'; ctx.fillText("TAP DIMANA SAJA UNTUK MEMULAI PERMAINAN", canvas.width/2, canvas.height - 110); ctx.globalAlpha = 1.0; }
-    function drawSpaceTravel() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const shipBob = Math.sin(Date.now()/200)*3; let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, ship.x, ship.y, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(ship.x, ship.y, ship.width, ship.height); } bullets.forEach(b => { ctx.shadowBlur=10; ctx.shadowColor='#0FF'; ctx.fillStyle='#0FF'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.shadowBlur=0; }); asteroids.forEach(a => { ctx.save(); ctx.translate(a.x+a.w/2, a.y+a.h/2); ctx.rotate(a.r); const astImg = getAsteroidRenderImage(a); if (astImg && astImg.complete && astImg.naturalWidth !== 0) { if (a.hitTimer > 0) { ctx.globalAlpha = 0.7; ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(-a.w/2, -a.h/2, a.w, a.h); ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = 'source-over'; } else { ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); } } else { ctx.fillStyle = a.hitTimer>0 ? '#FFF' : '#5C4033'; ctx.beginPath(); ctx.arc(0,0, a.w/2, 0, 6.28); ctx.fill(); ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(-a.w*0.2, -a.h*0.2, a.w*0.15, 0, 6.28); ctx.fill(); } ctx.restore(); }); particles.forEach(p => { ctx.fillStyle = p.c; ctx.globalAlpha = p.life/20; ctx.beginPath(); ctx.arc(p.x, p.y, 2+Math.random()*2, 0, 6.28); ctx.fill(); ctx.globalAlpha=1.0; }); floatingTexts.forEach(t => { ctx.fillStyle = t.color; ctx.globalAlpha = t.life/60; ctx.font = 'bold 20px Arial'; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); ctx.globalAlpha=1.0; }); if (planets[currentPlanetIndex].envType === 'heat') { ctx.fillStyle = `rgba(255, 50, 0, ${0.1 + Math.sin(Date.now()/500)*0.1})`; ctx.fillRect(0,0,canvas.width, canvas.height); } if (planets[currentPlanetIndex].envType === 'ice') { const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 300, canvas.width/2, canvas.height/2, 600); grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(1, 'rgba(200,240,255,0.4)'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); } drawHUD(); ctx.fillStyle='#FFF'; ctx.textAlign='left'; ctx.font='20px Arial'; ctx.fillText(`Tujuan: ${planets[currentPlanetIndex].name}`, 20, 90); if (combo>1) { ctx.fillStyle='#FFD700'; ctx.font='bold 24px Arial'; ctx.fillText(`COMBO x${combo}`, 20, 150); } }
+    function drawSpaceTravel() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s => { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, 6.28); ctx.fill(); }); const shipBob = Math.sin(Date.now()/200)*3; let sImg = images.ship0; if (shipLevel === 1) sImg = images.ship1; if (shipLevel === 2) sImg = images.ship2; if (shipLevel === 3) sImg = images.ship3; if (sImg && sImg.complete && sImg.naturalWidth !== 0) { ctx.drawImage(sImg, ship.x, ship.y, ship.width, ship.height); } else { ctx.fillStyle = '#4A90E2'; ctx.fillRect(ship.x, ship.y, ship.width, ship.height); } bullets.forEach(b => { ctx.shadowBlur=10; ctx.shadowColor='#0FF'; ctx.fillStyle='#0FF'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.shadowBlur=0; }); asteroids.forEach(a => { ctx.save(); ctx.translate(a.x+a.w/2, a.y+a.h/2); ctx.rotate(a.r); const astImg = getAsteroidRenderImage(a); if (astImg && astImg.complete && astImg.naturalWidth !== 0) { if (a.hitTimer > 0) { ctx.globalAlpha = 0.7; ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(-a.w/2, -a.h/2, a.w, a.h); ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = 'source-over'; } else { ctx.drawImage(astImg, -a.w/2, -a.h/2, a.w, a.h); } } else { ctx.fillStyle = a.hitTimer>0 ? '#FFF' : '#5C4033'; ctx.beginPath(); ctx.arc(0,0, a.w/2, 0, 6.28); ctx.fill(); ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(-a.w*0.2, -a.h*0.2, a.w*0.15, 0, 6.28); ctx.fill(); } ctx.restore(); }); particles.forEach(p => { ctx.fillStyle = p.c; ctx.globalAlpha = p.life/20; ctx.beginPath(); ctx.arc(p.x, p.y, 2+Math.random()*2, 0, 6.28); ctx.fill(); ctx.globalAlpha=1.0; }); floatingTexts.forEach(t => { ctx.fillStyle = t.color; ctx.globalAlpha = t.life/60; ctx.font = 'bold 20px Arial'; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); ctx.globalAlpha=1.0; }); if (planets[currentPlanetIndex].envType === 'heat') { ctx.fillStyle = `rgba(255, 50, 0, ${0.1 + Math.sin(Date.now()/500)*0.1})`; ctx.fillRect(0,0,canvas.width, canvas.height); } if (planets[currentPlanetIndex].envType === 'ice') { const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 300, canvas.width/2, canvas.height/2, 600); grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(1, 'rgba(200,240,255,0.4)'); ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width, canvas.height); } drawHUD(); if (combo>1) { ctx.fillStyle='#FFD700'; ctx.textAlign='left'; ctx.font='bold 24px Arial'; ctx.fillText(`COMBO x${combo}`, 20, 170); } }
     function drawApproachingPlanet() {
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -3901,7 +3981,7 @@
       const textX = boxX + 40;
       let textY = boxY + 50;
       
-      ctx.fillText(`Ranger: ${playerData.name}`, textX, textY); textY += 40;
+      ctx.fillText(`Petualang: ${playerData.name}`, textX, textY); textY += 40;
       ctx.fillText(`Total Skor: ${score}`, textX, textY); textY += 40;
       ctx.fillText(`Asteroid Hancur: ${stats.asteroidsDestroyed}`, textX, textY); textY += 40;
       ctx.fillText(`Kuis Terjawab: ${stats.quizCorrect}/${stats.quizTotal}`, textX, textY);
