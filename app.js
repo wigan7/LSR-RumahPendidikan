@@ -2431,6 +2431,7 @@
         { key: 'pressure', y: 310 },
         { key: 'flow', y: 400 }
       ];
+      let tappedButton = false;
       rows.forEach((row) => {
         const plusBtn = { x: canvas.width / 2 + 120, y: row.y - 26, w: 54, h: 42 };
         const minusBtn = { x: canvas.width / 2 + 186, y: row.y - 26, w: 54, h: 42 };
@@ -2439,12 +2440,18 @@
         if (inPlus) {
           applyReactorDelta(row.key, 'up');
           SoundManager.play('click');
+          tappedButton = true;
         }
         if (inMinus) {
           applyReactorDelta(row.key, 'down');
           SoundManager.play('click');
+          tappedButton = true;
         }
       });
+
+      if (!tappedButton) {
+        showFloatingText('Tap tombol + atau - di kanan bar', canvas.width / 2, 500, '#9FC4FF');
+      }
     }
     
     function initArtifactInfo() { gameState = GameState.ARTIFACT_INFO; artifactInfoTimer = 10; }
@@ -3794,7 +3801,7 @@
     }
 
     function drawReactor() {
-      drawMinigameFrame('STABILKAN REAKTOR MINI', 'Rentang target berubah di tiap langkah stabil.', '#FF8F66');
+      drawMinigameFrame('STABILKAN REAKTOR MINI', 'Tap tombol + untuk naikkan, tombol - untuk turunkan. Rentang target berubah tiap langkah stabil.', '#FF8F66');
 
       const rows = [
         { key: 'temp', label: 'Suhu', y: 220, color: '#FF7A59' },
@@ -3869,6 +3876,11 @@
         ctx.fillText('+', plusBtn.x + (plusBtn.w / 2), plusBtn.y + 28);
         ctx.fillText('-', minusBtn.x + (minusBtn.w / 2), minusBtn.y + 28);
       });
+
+      ctx.fillStyle = '#9FC4FF';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText('Petunjuk: tap tombol + / - di kanan tiap bar', canvas.width / 2 + 238, 176);
 
       const progressRatio = Math.max(0, Math.min(1, reactorStableSteps / Math.max(1, reactorRequiredStableSteps)));
       const progressX = canvas.width / 2 - 250;
