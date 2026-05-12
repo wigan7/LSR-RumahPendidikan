@@ -1,4 +1,4 @@
-﻿    // --- SOUND MANAGER (Enhanced with BGM & Victory) ---
+    // --- SOUND MANAGER (Enhanced with BGM & Victory) ---
     const SoundManager = {
         ctx: null,
         bgmNodes: [],
@@ -827,7 +827,8 @@
       START:'start', MENU:'menu', ROADMAP:'roadmap', SPACE_TRAVEL:'space_travel', APPROACHING_PLANET: 'approaching_planet', UPGRADE_SCREEN: 'upgrade_screen', LEAVING_PLANET: 'leaving_planet',
       EXPLORATION:'exploration', EXCAVATION:'excavation', SIGNAL:'signal', DRILLING:'drilling', GENERATOR:'generator', SPECTROMETER:'spectrometer', SENSOR_CIRCUIT:'sensor_circuit', MICROSCOPE:'microscope', REACTOR:'reactor', 
       ARTIFACT_INFO:'artifact_info', READING:'reading', BATTLE:'battle', GAME_OVER:'game_over', WIN:'win',
-      MULTIPLAYER_BATTLE:'multiplayer_battle', MULTIPLAYER_RESULT:'multiplayer_result'
+      MULTIPLAYER_BATTLE:'multiplayer_battle', MULTIPLAYER_RESULT:'multiplayer_result',
+      CREDITS:'credits'
     };
     let gameState = GameState.START;
     let currentPlanetIndex = 0;
@@ -836,6 +837,10 @@
     let isPaused = false;
     let progressExpanded = false;
     let stats = { asteroidsDestroyed: 0, accuracy: 0, quizCorrect: 0, quizTotal: 0 };
+    let creditsY = 0;
+    let creditsDragStartY = null;
+    let creditsDragLastY = null;
+    let creditsAutoScroll = true;
 
     // Space Travel
     let ship = { x: 400, y: 500, width: 60, height: 60, speed: 300 }; 
@@ -1595,7 +1600,7 @@
       }
       // Tap pada progress indicator (collapsed pill atau expanded panel)
       {
-        const _hudVisible = gameState !== GameState.START && gameState !== GameState.MENU && gameState !== GameState.ROADMAP && gameState !== GameState.GAME_OVER && gameState !== GameState.WIN && gameState !== GameState.MULTIPLAYER_BATTLE && gameState !== GameState.MULTIPLAYER_RESULT;
+        const _hudVisible = gameState !== GameState.START && gameState !== GameState.MENU && gameState !== GameState.ROADMAP && gameState !== GameState.GAME_OVER && gameState !== GameState.WIN && gameState !== GameState.MULTIPLAYER_BATTLE && gameState !== GameState.MULTIPLAYER_RESULT && gameState !== GameState.CREDITS;
         if (_hudVisible) {
           const _isBottomLeftPhase = gameState === GameState.SPACE_TRAVEL || gameState === GameState.EXPLORATION;
           const _pillW = 180, _pillH = 38;
@@ -1621,14 +1626,31 @@
       else if (gameState === GameState.BATTLE && showQuestion) handleBattleTouch(pos);
       else if (gameState === GameState.MULTIPLAYER_BATTLE) handleMultiplayerTouch(pos);
       
-      // FIXED END GAME BUTTON LOGIC (Merged GAME_OVER and WIN)
+      // FIXED END GAME BUTTON LOGIC (Merged GAME_OVER and WIN) -> Now transitions to CREDITS
       else if (gameState === GameState.GAME_OVER || gameState === GameState.WIN) {
-          // Check if "Back to Menu" button is clicked (Visual dimensions: 300x60)
+          // Check if "LIHAT KREDIT" button is clicked (Visual dimensions: 300x60)
           const btnW = 300; const btnH = 60;
           const btnX = canvas.width/2 - btnW/2; 
           const btnY = canvas.height - 90;
           if (pos.x >= btnX && pos.x <= btnX + btnW && pos.y >= btnY && pos.y <= btnY + btnH) {
-              SoundManager.play('click'); resetGame();
+              SoundManager.play('click');
+              creditsY = 40;
+              creditsAutoScroll = true;
+              gameState = GameState.CREDITS;
+          }
+      }
+      // Credits: check button or start drag
+      else if (gameState === GameState.CREDITS) {
+          const btnW = 300, btnH = 60;
+          const btnX = canvas.width/2 - btnW/2;
+          const btnY = canvas.height - 80;
+          if (pos.x >= btnX && pos.x <= btnX + btnW && pos.y >= btnY && pos.y <= btnY + btnH) {
+              SoundManager.play('click');
+              resetGame();
+          } else {
+              creditsAutoScroll = false;
+              creditsDragStartY = pos.y;
+              creditsDragLastY = pos.y;
           }
       }
       
@@ -1670,6 +1692,11 @@
       else if (gameState === GameState.SIGNAL) handleSignalMove(pos);
       else if (gameState === GameState.SPECTROMETER) handleSpectrometerMove(pos);
       else if (gameState === GameState.MICROSCOPE) handleMicroscopeMove(pos);
+      else if (gameState === GameState.CREDITS && creditsDragLastY !== null) {
+        const dy = pos.y - creditsDragLastY;
+        creditsY += dy;
+        creditsDragLastY = pos.y;
+      }
     };
 
     const handleEnd = () => {
@@ -1678,6 +1705,8 @@
       isScanButtonPressed = false;
       isDrilling = false;
       activeSliderControl = null;
+      creditsDragStartY = null;
+      creditsDragLastY = null;
       if (gameState === GameState.EXPLORATION) {
         const interruptedScan = scanTarget && scanProgress > 8 && scanProgress < scanRequired;
         if (interruptedScan && scanReleaseHintCooldown <= 0) {
@@ -4093,7 +4122,202 @@
       ctx.strokeStyle = '#FFF'; ctx.lineWidth = 3; ctx.stroke();
       
       ctx.fillStyle = '#FFF'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center'; 
-      ctx.fillText("KEMBALI KE MENU", canvas.width/2, btnY + 38);
+      ctx.fillText("LIHAT KREDIT", canvas.width/2, btnY + 38);
+    }
+
+    function drawCredits() {
+      const bottomBarH = 90;
+      const contentAreaH = canvas.height - bottomBarH;
+
+      // Dark background
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Decorative stars
+      stars.forEach(s => {
+        ctx.fillStyle = `rgba(255,255,255,${0.3 + Math.sin(Date.now() / 600 + s.x) * 0.3})`;
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.28); ctx.fill();
+      });
+
+      // Credit lines (bilingual)
+      const creditLines = [
+        { text: '— PETUALANG CILIK TATA SURYAKU —', style: 'title' },
+        { text: '', style: 'spacer' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: 'CORE DEVELOPMENT', style: 'heading' },
+        { text: 'Pengembangan Inti', style: 'subheading' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: '', style: 'spacer' },
+        { text: 'Original Concept / Konsep Asli', style: 'label' },
+        { text: 'Rubiyanto', style: 'name' },
+        { text: '', style: 'spacer' },
+        { text: 'Lead Developer', style: 'label' },
+        { text: '(Game Design, Programming & Logic)', style: 'label' },
+        { text: 'Pengembang Utama (Desain, Pemrograman & Logika)', style: 'label' },
+        { text: 'Wigan Anggit Utomo', style: 'name' },
+        { text: '', style: 'spacer' },
+        { text: 'Project Support / Dukungan Proyek', style: 'label' },
+        { text: 'Winda Astria Sandy', style: 'name' },
+        { text: '', style: 'spacer' },
+        { text: '', style: 'spacer' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: 'ENGINE & TECHNOLOGY', style: 'heading' },
+        { text: 'Mesin & Teknologi', style: 'subheading' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: '', style: 'spacer' },
+        { text: 'Proprietary Vanilla JavaScript', style: 'name' },
+        { text: '& HTML5 Canvas', style: 'name' },
+        { text: '(No external open-source frameworks', style: 'note' },
+        { text: 'or physics libraries were used', style: 'note' },
+        { text: 'in the making of this game)', style: 'note' },
+        { text: '(Tanpa framework atau pustaka fisika', style: 'note' },
+        { text: 'sumber terbuka eksternal)', style: 'note' },
+        { text: '', style: 'spacer' },
+        { text: '', style: 'spacer' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: 'TYPOGRAPHY', style: 'heading' },
+        { text: 'Tipografi', style: 'subheading' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: '', style: 'spacer' },
+        { text: 'System Default Fonts (Arial)', style: 'name' },
+        { text: '(No third-party open-source fonts utilized)', style: 'note' },
+        { text: '(Tanpa font sumber terbuka pihak ketiga)', style: 'note' },
+        { text: '', style: 'spacer' },
+        { text: '', style: 'spacer' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: 'ART & ASSETS (AI-GENERATED)', style: 'heading' },
+        { text: 'Seni & Aset (Dibuat oleh AI)', style: 'subheading' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: '', style: 'spacer' },
+        { text: 'All 2D Sprites, Backgrounds & UI Elements', style: 'label' },
+        { text: 'Semua Sprite 2D, Latar & Elemen UI', style: 'label' },
+        { text: 'Generated via Google Gemini', style: 'name' },
+        { text: '(Nanobanana Model)', style: 'note' },
+        { text: '', style: 'spacer' },
+        { text: 'All Background Music & Sound Effects', style: 'label' },
+        { text: 'Semua Musik Latar & Efek Suara', style: 'label' },
+        { text: 'Generated via Google Gemini', style: 'name' },
+        { text: '(Lyria Model)', style: 'note' },
+        { text: '', style: 'spacer' },
+        { text: '(No copyrighted or Creative Commons', style: 'note' },
+        { text: 'media assets were downloaded', style: 'note' },
+        { text: 'from the internet)', style: 'note' },
+        { text: '(Tidak ada aset media berhak cipta', style: 'note' },
+        { text: 'atau Creative Commons yang diunduh', style: 'note' },
+        { text: 'dari internet)', style: 'note' },
+        { text: '', style: 'spacer' },
+        { text: '', style: 'spacer' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: 'SPECIAL THANKS', style: 'heading' },
+        { text: 'Terima Kasih Khusus', style: 'subheading' },
+        { text: '═══════════════════════════════', style: 'divider' },
+        { text: '', style: 'spacer' },
+        { text: 'Pusdatin Kemendikdasmen', style: 'name' },
+        { text: 'Disdikbudikpora Kabupaten Semarang', style: 'name' },
+        { text: 'Korwilbidik Kecamatan Kaliwungu', style: 'name' },
+        { text: 'SD Negeri Kradenan 01', style: 'name' },
+        { text: 'SD Negeri Mukiran 03', style: 'name' },
+        { text: '', style: 'spacer' },
+        { text: '', style: 'spacer' },
+        { text: '★ Terima kasih telah bermain! ★', style: 'title' },
+        { text: '★ Thank you for playing! ★', style: 'title' },
+        { text: '', style: 'spacer' },
+        { text: '', style: 'spacer' },
+      ];
+
+      // Calculate total content height
+      const totalH = creditLines.reduce((h, line) => {
+        if (line.style === 'spacer') return h + 20;
+        if (line.style === 'title') return h + 50;
+        if (line.style === 'heading') return h + 42;
+        if (line.style === 'subheading' || line.style === 'label') return h + 30;
+        if (line.style === 'name') return h + 36;
+        if (line.style === 'note' || line.style === 'divider') return h + 24;
+        return h + 30;
+      }, 0);
+
+      // Clamp creditsY so content stays within bounds
+      const minY = Math.min(40, -(totalH - contentAreaH + 40));
+      const maxY = 40;
+      // Auto-scroll (slow) if player hasn't manually scrolled
+      if (creditsAutoScroll) {
+        creditsY -= 0.5;
+        if (creditsY < minY) creditsY = minY;
+      }
+
+      creditsY = Math.max(minY, Math.min(maxY, creditsY));
+
+      // Draw credit text (clipped to content area above the bottom bar)
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, canvas.width, contentAreaH);
+      ctx.clip();
+
+      ctx.textAlign = 'center';
+      const centerX = canvas.width / 2;
+      let y = creditsY;
+
+      for (let i = 0; i < creditLines.length; i++) {
+        const line = creditLines[i];
+        let lineHeight = 36;
+        switch (line.style) {
+          case 'title':    ctx.font = 'bold 36px Arial'; ctx.fillStyle = '#FFD700'; lineHeight = 50; break;
+          case 'heading':  ctx.font = 'bold 28px Arial'; ctx.fillStyle = '#00BFFF'; lineHeight = 42; break;
+          case 'subheading': ctx.font = 'italic 20px Arial'; ctx.fillStyle = '#87CEEB'; lineHeight = 30; break;
+          case 'label':    ctx.font = '20px Arial'; ctx.fillStyle = '#AAAAAA'; lineHeight = 30; break;
+          case 'name':     ctx.font = 'bold 24px Arial'; ctx.fillStyle = '#FFFFFF'; lineHeight = 36; break;
+          case 'note':     ctx.font = 'italic 16px Arial'; ctx.fillStyle = '#888888'; lineHeight = 24; break;
+          case 'divider':  ctx.font = '16px Arial'; ctx.fillStyle = '#444444'; lineHeight = 24; break;
+          case 'spacer':   y += 20; continue;
+          default:         ctx.font = '20px Arial'; ctx.fillStyle = '#CCCCCC'; lineHeight = 30;
+        }
+        if (y > -50 && y < contentAreaH + 50) {
+          ctx.fillText(line.text, centerX, y);
+        }
+        y += lineHeight;
+      }
+      ctx.restore();
+
+      // Gradient fade at top edge
+      const fadeH = 50;
+      const gradTop = ctx.createLinearGradient(0, 0, 0, fadeH);
+      gradTop.addColorStop(0, 'rgba(0,0,0,1)'); gradTop.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gradTop; ctx.fillRect(0, 0, canvas.width, fadeH);
+
+      // Gradient fade just above bottom bar
+      const gradMid = ctx.createLinearGradient(0, contentAreaH - fadeH, 0, contentAreaH);
+      gradMid.addColorStop(0, 'rgba(0,0,0,0)'); gradMid.addColorStop(1, 'rgba(0,0,0,1)');
+      ctx.fillStyle = gradMid; ctx.fillRect(0, contentAreaH - fadeH, canvas.width, fadeH);
+
+      // Scroll indicator (small arrows + hint text)
+      if (totalH > contentAreaH) {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.font = 'italic 14px Arial';
+        ctx.fillStyle = `rgba(255,255,255,${0.4 + Math.sin(Date.now() / 400) * 0.2})`;
+        if (creditsY < maxY - 2) ctx.fillText('▲ geser ke bawah untuk naik', centerX, 22);
+        if (creditsY > minY + 2) ctx.fillText('▼ geser ke atas untuk turun', centerX, contentAreaH - 10);
+        ctx.restore();
+      }
+
+      // === Fixed bottom bar with "KEMBALI KE MENU" button ===
+      ctx.fillStyle = 'rgba(0,0,0,0.95)';
+      ctx.fillRect(0, contentAreaH, canvas.width, bottomBarH);
+      // Separator line
+      ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, contentAreaH); ctx.lineTo(canvas.width, contentAreaH); ctx.stroke();
+
+      const btnW = 300, btnH = 54;
+      const btnX = canvas.width / 2 - btnW / 2;
+      const btnY = canvas.height - 80;
+      const pulse = Math.sin(Date.now() / 300) * 2;
+
+      ctx.fillStyle = '#1E90FF';
+      ctx.beginPath(); ctx.roundRect(btnX - pulse, btnY - pulse, btnW + pulse * 2, btnH + pulse * 2, 27); ctx.fill();
+      ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2; ctx.stroke();
+
+      ctx.fillStyle = '#FFF'; ctx.font = 'bold 22px Arial'; ctx.textAlign = 'center';
+      ctx.fillText('KEMBALI KE MENU', canvas.width / 2, btnY + 35);
     }
 
     let lastTime = 0;
@@ -4121,6 +4345,7 @@
       else if(gameState === GameState.MULTIPLAYER_RESULT) drawMultiplayerResult();
       else if(gameState === GameState.GAME_OVER) drawEndScreen("MISI GAGAL", "#F00");
       else if(gameState === GameState.WIN) drawEndScreen("MISI SUKSES", "#0F0");
+      else if(gameState === GameState.CREDITS) drawCredits();
       requestAnimationFrame(gameLoop);
     }
 
