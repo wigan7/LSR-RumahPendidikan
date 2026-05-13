@@ -868,7 +868,9 @@
     let scanPromptShown = false;
     let scanPromptFlash = 0;
     let scanReleaseHintCooldown = 0;
-    let activeObstacleHits = 0; 
+    let activeObstacleHits = 0;
+    let factBoxCollapsed = true;
+    let factBoxCollapseTimer = 0;
 
     // MINIGAMES
     let artifactInfoTimer = 0;
@@ -1655,6 +1657,16 @@
       }
       
       else if (gameState === GameState.EXPLORATION) {
+        // Toggle fact box collapse on header tap
+        if (collectedFragments > 0) {
+          const fbHeaderH = 32;
+          const fbW = factBoxCollapsed ? 185 : 220;
+          if (pos.x >= 10 && pos.x <= 10 + fbW && pos.y >= 100 && pos.y <= 100 + fbHeaderH) {
+            factBoxCollapsed = !factBoxCollapsed;
+            if (!factBoxCollapsed) factBoxCollapseTimer = 0;
+            return;
+          }
+        }
         if (scanTarget) { const btnX = astronaut.x; const btnY = astronaut.y - 80; const dist = Math.sqrt(Math.pow(pos.x - btnX, 2) + Math.pow(pos.y - btnY, 2)); if (dist < 62) { isScanButtonPressed = true; SoundManager.play('scan'); return; } } isScanButtonPressed = false;
       }
       else if (gameState === GameState.EXCAVATION) handleExcavationRub(pos);
@@ -1800,6 +1812,8 @@
         scanPromptShown = false;
         scanPromptFlash = 0;
         scanReleaseHintCooldown = 0;
+        factBoxCollapsed = true;
+        factBoxCollapseTimer = 0;
         floatingTexts = [];
         SoundManager.playAdventureTheme();
 
@@ -2484,7 +2498,7 @@
     }
     
     function initArtifactInfo() { gameState = GameState.ARTIFACT_INFO; artifactInfoTimer = 10; }
-    function closeArtifactInfo() { activeFragment.collected = true; collectedFragments++; score += 200; scanTarget = null; if(collectedFragments >= totalFragments) { let oxyBonus = Math.floor(currentOxygen * 10); score += oxyBonus; showFloatingText(`BONUS OKSIGEN +${oxyBonus}`, canvas.width/2, canvas.height/2, '#00BFFF'); if (activeObstacleHits === 0) { score += 300; setTimeout(() => showFloatingText("CLEAN RUN +300", canvas.width/2, canvas.height/2 + 40, '#00FF00'), 500); } SoundManager.play('correct'); explorationPhase = 'complete'; initReadingPhase(); setTimeout(() => { gameState = GameState.READING; }, 2000); } else { gameState = GameState.EXPLORATION; } }
+    function closeArtifactInfo() { activeFragment.collected = true; collectedFragments++; factBoxCollapsed = false; score += 200; scanTarget = null; if(collectedFragments >= totalFragments) { let oxyBonus = Math.floor(currentOxygen * 10); score += oxyBonus; showFloatingText(`BONUS OKSIGEN +${oxyBonus}`, canvas.width/2, canvas.height/2, '#00BFFF'); if (activeObstacleHits === 0) { score += 300; setTimeout(() => showFloatingText("CLEAN RUN +300", canvas.width/2, canvas.height/2 + 40, '#00FF00'), 500); } SoundManager.play('correct'); explorationPhase = 'complete'; initReadingPhase(); setTimeout(() => { gameState = GameState.READING; }, 2000); } else { gameState = GameState.EXPLORATION; } }
     function updateArtifactInfo(dt) { if (isPaused) return; artifactInfoTimer -= dt; if (artifactInfoTimer <= 0) closeArtifactInfo(); }
     
     function initReadingPhase() { readingTimer = 60; floatingTexts = []; }
@@ -2606,6 +2620,10 @@
       const visualProfile = getPlanetExplorationVisualProfile(planet.name);
       if (scanReleaseHintCooldown > 0) scanReleaseHintCooldown -= dt;
       if (scanPromptFlash > 0) scanPromptFlash = Math.max(0, scanPromptFlash - (dt * 1.8));
+      if (factBoxCollapseTimer > 0) {
+        factBoxCollapseTimer -= dt;
+        if (factBoxCollapseTimer <= 0) { factBoxCollapseTimer = 0; factBoxCollapsed = true; }
+      }
       currentOxygen -= gameBalance.oxygenDrainPerSec * dt;
       if (currentOxygen <= 0) {
         currentOxygen = 0;
@@ -2664,6 +2682,8 @@
         let targetY = startY;
 
         if (isTouching && touchX !== null) {
+          if (!factBoxCollapsed && factBoxCollapseTimer <= 0) factBoxCollapseTimer = 3;
+          else if (!factBoxCollapsed) { /* keep existing timer */ }
           const dx = touchX - startX;
           const dy = touchY - startY;
           const dist = Math.sqrt(dx * dx + dy * dy);
@@ -3395,51 +3415,57 @@
       }
 
       if (collectedFragments > 0) {
-        const startX = 20;
-        const boxWidth = 260;
-        const maxWidth = 240;
-        const lineHeight = 16;
-        let linesToDraw = [];
-        ctx.font = '12px Arial';
+        const boxX = 10;
+        const headerH = 32;
+        const headerY = 100;
+        const arrowLabel = factBoxCollapsed ? '▶' : '▼';
 
-        infoFragments.forEach((f) => {
-          if (f.collected) {
-            const words = f.data.short.split(' ');
-            let line = '> ';
-            for (let n = 0; n < words.length; n++) {
-              const testLine = line + words[n] + ' ';
-              const metrics = ctx.measureText(testLine);
-              if (metrics.width > maxWidth && n > 0) {
-                linesToDraw.push(line);
-                line = `  ${words[n]} `;
-              } else {
-                line = testLine;
-              }
+        if (factBoxCollapsed) {
+          // Collapsed: compact pill
+          const pillW = 185;
+          ctx.fillStyle = 'rgba(0,0,0,0.72)';
+          ctx.beginPath();
+          ctx.roundRect(boxX, headerY, pillW, headerH, 8);
+          ctx.fill();
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.fillStyle = '#FFD700';
+          ctx.font = 'bold 13px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(`FAKTA DITEMUKAN ${arrowLabel}`, boxX + pillW / 2, headerY + 21);
+          ctx.textAlign = 'left';
+        } else {
+          // Expanded: compact list, one line per fact (short text)
+          const boxW = 220;
+          const lineH = 18;
+          const listCount = infoFragments.filter(f => f.collected).length;
+          const boxH = headerH + listCount * lineH + 8;
+
+          ctx.fillStyle = 'rgba(0,0,0,0.72)';
+          ctx.beginPath();
+          ctx.roundRect(boxX, headerY, boxW, boxH, 8);
+          ctx.fill();
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // Header
+          ctx.fillStyle = '#FFD700';
+          ctx.font = 'bold 13px Arial';
+          ctx.textAlign = 'left';
+          ctx.fillText(`FAKTA DITEMUKAN ${arrowLabel}`, boxX + 10, headerY + 21);
+
+          // Fact lines
+          ctx.font = '12px Arial';
+          let yp = headerY + headerH + lineH - 4;
+          infoFragments.forEach((f) => {
+            if (f.collected) {
+              ctx.fillStyle = '#C6FFD8';
+              ctx.fillText(`• ${f.data.short}`, boxX + 10, yp);
+              yp += lineH;
             }
-            linesToDraw.push(line);
-            linesToDraw.push('');
-          }
-        });
-
-        const boxHeight = Math.min((linesToDraw.length * lineHeight) + 40, canvas.height - 150);
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.roundRect(10, 100, boxWidth, boxHeight, 10);
-        ctx.fill();
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.fillStyle = '#FFD700';
-        ctx.textAlign = 'left';
-        ctx.font = 'bold 14px Arial';
-        ctx.fillText('FAKTA DITEMUKAN:', 20, 125);
-        ctx.fillStyle = '#FFF';
-        ctx.font = '12px Arial';
-        let yp = 150;
-        for (let i = 0; i < linesToDraw.length; i++) {
-          if (yp < 100 + boxHeight - 10) {
-            ctx.fillText(linesToDraw[i], startX, yp);
-            yp += lineHeight;
-          }
+          });
         }
       }
 
