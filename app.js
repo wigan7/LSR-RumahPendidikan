@@ -283,6 +283,31 @@
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const gameContainer = document.querySelector('.game-container');
+    const gameContent = document.querySelector('.game-content');
+    const BASE_GAME_WIDTH = 960;
+    const BASE_GAME_HEIGHT = 540;
+
+    function applyResponsiveScale() {
+      if (!gameContainer || !gameContent) return;
+
+      const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+      const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const scale = Math.min(viewportWidth / BASE_GAME_WIDTH, viewportHeight / BASE_GAME_HEIGHT);
+
+      gameContent.style.transform = `scale(${Math.max(scale, 0.1).toFixed(4)})`;
+    }
+
+    canvas.width = BASE_GAME_WIDTH;
+    canvas.height = BASE_GAME_HEIGHT;
+    applyResponsiveScale();
+
+    window.addEventListener('resize', applyResponsiveScale);
+    window.addEventListener('orientationchange', applyResponsiveScale);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', applyResponsiveScale);
+      window.visualViewport.addEventListener('scroll', applyResponsiveScale);
+    }
 
     let playerData = { name: "Petualang", gender: "male" };
 
